@@ -1,0 +1,15 @@
+repository_type: pipeline
+
+nf_core_version: 3.1.2
+
+lint: {}
+
+template:
+  org: nf-core
+  name: pacsomatic
+  description: Nextflow pipeline for PacBio HiFi tumor/normal somatic genomics
+  author: Wenchao Zhang,Haidong Yi
+  version: 1.0.0dev
+  force: true
+  outdir: pacsomatic
+  is_nfcore: true
