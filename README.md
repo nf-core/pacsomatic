@@ -19,8 +19,7 @@
 
 ## Introduction
 
-**nf-core/pacsomatic** is a bioinformatics pipeline that ...
-
+**nf-core/pacsomatic** is a bioinformatics pipeline that use Pacbio HiFi Read data for **somatic** analysis. Specifically, **nf-core/pacsomatic** automatically paired the tumor/normal alignment, and proceed to a series of downstream somatic analysis including somatic variant calling(**SNV_INDEL/SV/CNV**) and annotation, tumor **clonality/purity** analysis, Homologous recombination deficiency(**CHORD**) analsysis, methylation calling and Differential Methylation Region (**DMR**) detection and annotation. Such comparative studies of tumor/normal pairs can contribute to gain a deeper insights of cancer biology.          
 <!-- TODO nf-core:
    Complete this sentence with a 2-3 sentence summary of what types of data the pipeline ingests, a brief overview of the
    major pipeline sections and the types of output it produces. You're giving an overview to someone new
