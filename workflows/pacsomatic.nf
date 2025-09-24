@@ -9,6 +9,13 @@ include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_pacsomatic_pipeline'
+include { checkParameters        } from '../subworkflows/local/utils_pacsomatic_pipeline'
+include { checkPathParameters    } from '../subworkflows/local/utils_pacsomatic_pipeline'
+
+include { PREPARE_GENOME         } from '../subworkflows/local/prepare_genome'
+
+include { PBTK_PBMERGE           } from '../modules/local/pbtk/pbmerge/main'
+include { PBMM2_ALIGN            } from '../modules/nf-core/pbmm2/align/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -20,18 +27,111 @@ workflow PACSOMATIC {
 
     take:
     ch_samplesheet // channel: samplesheet read in from --input
-    main:
 
+    main:
+    // check parameters
+    checkParameters()
+    checkPathParameters()
+
+    // init version and multiqc channels
     ch_versions = Channel.empty()
     ch_multiqc_files = Channel.empty()
+
     //
-    // MODULE: Run FastQC
+    // Group BAMs by patient-sample and merge if multiple files exists
     //
-    FASTQC (
-        ch_samplesheet
+    ch_grouped_bams = ch_samplesheet
+        .map { meta, bam, pbi ->
+            def patient_sample = "${meta.patient}_${meta.sample}"
+            // Add id field for process naming
+            def meta_with_id = meta + [id: patient_sample]
+            [ patient_sample, meta_with_id, bam, pbi ]
+        }
+        .groupTuple(by: 0)
+        .branch { _patient_sample, meta_list, bam_list, pbi_list ->
+            // Take first meta since patient/sample/status should be identical
+            def meta = meta_list[0]
+            single: bam_list.size() == 1
+                return [ meta, bam_list[0], pbi_list[0] ]
+            multiple: bam_list.size() > 1
+                return [ meta, bam_list, pbi_list ]
+        }
+
+    // Merge multiple BAMs per patient-sample
+    PBTK_PBMERGE(
+        ch_grouped_bams.multiple.map { meta, bams, _pbis ->
+            [ meta, bams ]
+        }
     )
-    ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
-    ch_versions = ch_versions.mix(FASTQC.out.versions.first())
+    ch_versions = ch_versions.mix(PBTK_PBMERGE.out.versions.first())
+
+    // Combine single BAMs and merged BAMs
+    ch_input_sample = ch_grouped_bams.single
+        .mix(
+            PBTK_PBMERGE.out.bam.join(PBTK_PBMERGE.out.pbi, by: 0)
+        )
+
+    //
+    // SUBWORKFLOW: Uncompress and prepare reference genomes files used by the pipeline
+    //
+    PREPARE_GENOME( params.fasta )
+    ch_versions = ch_versions.mix(PREPARE_GENOME.out.versions)
+
+    genome_fasta = PREPARE_GENOME.out.prepped_genome_fasta
+
+    // Alignment with PacBio PBMM2
+    ch_pbmm2_input = ch_input_sample
+        .map { meta, bam, _pbi ->
+            [ meta, bam ]
+        }
+    PBMM2_ALIGN ( ch_pbmm2_input, genome_fasta )
+    ch_versions = ch_versions.mix(PBMM2_ALIGN.out.versions.first())
+
+    //
+    /* YOUR ANALYSIS BEFORE PAIRING STARTS HERE */
+    //
+
+    ch_processed = PBMM2_ALIGN.out.bam
+
+
+    //
+    // Pre-pare tumor-normal pairs for variant calling
+    //
+
+    // Split samples by status (0=normal, 1=tumor)
+    ch_samples_by_patient = ch_processed
+        .branch { meta, bam ->
+            normal: meta.status == 0
+                return [ meta.patient, meta, bam ]
+            tumor: meta.status == 1
+                return [ meta.patient, meta, bam ]
+        }
+
+    // Group normals and tumors by patient
+    ch_normals = ch_samples_by_patient.normal
+        .map { patient, meta, bam  ->
+            [ patient, meta, bam ]
+        }
+
+    ch_tumors = ch_samples_by_patient.tumor
+        .map { patient, meta, bam ->
+            [ patient, meta, bam ]
+        }
+
+    // Generate tumor and normal pairs for each patient
+    ch_tn_pairs = ch_tumors
+        .combine(ch_normals, by: 0)
+        .map { patient, tumor_meta, tumor_bam,
+            normal_meta, normal_bam ->
+            def pair_meta = [
+                patient: patient,
+                tumor_id: tumor_meta.sample,
+                normal_id: normal_meta.sample,
+                id: "${patient}_${tumor_meta.sample}_vs_${normal_meta.sample}"
+            ]
+            [ pair_meta, tumor_bam, normal_bam ]
+        }
+    ch_tn_pairs.view()
 
     //
     // Collate and save software versions
