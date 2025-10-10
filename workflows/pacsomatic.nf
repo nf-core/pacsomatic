@@ -17,6 +17,13 @@ include { PREPARE_GENOME         } from '../subworkflows/local/prepare_genome'
 include { PBTK_PBMERGE           } from '../modules/local/pbtk/pbmerge/main'
 include { PBMM2_ALIGN            } from '../modules/nf-core/pbmm2/align/main'
 
+include { SAMTOOLS_SORT          } from '../modules/nf-core/samtools/sort/main'
+include { SAMTOOLS_INDEX         } from '../modules/nf-core/samtools/index/main'
+include { SAMTOOLS_FAIDX         } from '../modules/nf-core/samtools/faidx/main'
+
+include { MOSDEPTH               } from '../modules/nf-core/mosdepth/main'
+include	{ DEEPTOOLS_BAMCOVERAGE  } from	'../modules/nf-core/deeptools/bamcoverage/main'
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -77,22 +84,49 @@ workflow PACSOMATIC {
     PREPARE_GENOME( params.fasta )
     ch_versions = ch_versions.mix(PREPARE_GENOME.out.versions)
 
-    genome_fasta = PREPARE_GENOME.out.prepped_genome_fasta
+    ch_genome_fasta = PREPARE_GENOME.out.prepped_genome_fasta
+    SAMTOOLS_FAIDX( ch_genome_fasta, [ [:], "$projectDir/assets/dummy_file.txt" ], [:] )
+    ch_genome_fai   = SAMTOOLS_FAIDX.out.fai    
 
     // Alignment with PacBio PBMM2
     ch_pbmm2_input = ch_input_sample
         .map { meta, bam, _pbi ->
             [ meta, bam ]
         }
-    PBMM2_ALIGN ( ch_pbmm2_input, genome_fasta )
+    PBMM2_ALIGN ( ch_pbmm2_input, ch_genome_fasta )
     ch_versions = ch_versions.mix(PBMM2_ALIGN.out.versions.first())
 
     //
     /* YOUR ANALYSIS BEFORE PAIRING STARTS HERE */
     //
 
-    ch_processed = PBMM2_ALIGN.out.bam
+    SAMTOOLS_SORT(PBMM2_ALIGN.out.bam, ch_genome_fasta, [:])
+    SAMTOOLS_INDEX(SAMTOOLS_SORT.out.bam)
 
+    ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions)
+    ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions)
+    
+    ch_bam_bai = SAMTOOLS_SORT.out.bam.join(SAMTOOLS_INDEX.out.bai)
+
+    ch_ordered_bam = ch_bam_bai.map { meta, bam, bai -> [meta, bam] }
+    ch_ordered_bai = ch_bam_bai.map { meta, bam, bai -> [meta, bai] }
+
+    if (!params.skip_mosdepth) {
+       ch_bed = channel.of("$projectDir/assets/dummy_file.txt")
+       ch_mosdepth_bam = ch_bam_bai.combine(ch_bed)
+       ch_mosdepth_bam.view()
+       MOSDEPTH (ch_mosdepth_bam, ch_genome_fasta)
+       ch_versions = ch_versions.mix(MOSDEPTH.out.versions)
+    }    
+    
+    if (!params.skip_bamcoverage)  {
+       genome_fasta = ch_genome_fasta.map {meta, genome_fasta -> [genome_fasta] }
+       genome_fai   = ch_genome_fai.map { meta, genome_fai -> [genome_fai] }
+       DEEPTOOLS_BAMCOVERAGE(ch_bam_bai, genome_fasta, genome_fai)
+       ch_versions = ch_versions.mix(DEEPTOOLS_BAMCOVERAGE.out.versions)
+    }
+    
+    ch_processed = PBMM2_ALIGN.out.bam
 
     //
     // Pre-pare tumor-normal pairs for variant calling

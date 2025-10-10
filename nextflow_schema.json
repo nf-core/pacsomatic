@@ -130,6 +130,24 @@
                 }
             }
         },
+        "bam_qc": {
+           "title": "Alignment BAM QC evaluation",
+            "type": "object",
+            "description": "Options for alignment qc",
+            "help_text": "These options allow customization of alignment BAM qc evaluation",
+            "properties": {
+                "skip_mosdepth": {
+                    "type": "boolean",
+                    "description": "Option to skip mosdepth for alignment QC",
+                    "fa_icon": "fas fa-forward"
+                },
+                "skip_bamcoverage": {
+                    "type": "boolean",
+                    "description": "Option to skip bamcoverage for alignment QC",
+                    "fa_icon": "fas fa-forward"
+                },
+            }
+        },
         "generic_options": {
             "title": "Generic options",
             "type": "object",

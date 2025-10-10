@@ -55,6 +55,7 @@ workflow PIPELINE_INITIALISATION {
         validate_params,
         null
     )
+   
 
     //
     // Check config provided to the pipeline
