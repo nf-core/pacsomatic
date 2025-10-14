@@ -82,6 +82,36 @@
                 }
             }
         },
+        "process_skipping_options": {
+            "title": "Process skipping options",
+            "type": "object",
+            "description": "Options to skip various steps within the workflow.",
+            "default": "",
+            "help_text": "",
+            "properties": {
+                "skip_qc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-forward",
+                    "description": "Skip all QC."
+                },
+                "skip_mosdepth": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-forward",
+                    "description": "Skip Mosdepth."
+                },
+                "skip_bamcoverage": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-forward",
+                    "description": "Skip Bamcoverage."
+                },
+                "skip_multiqc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-forward",
+                    "description": "Skip MultiQC."
+                }
+            },
+            "fa_icon": "fas fa-forward"
+        },
         "institutional_config_options": {
             "title": "Institutional config options",
             "type": "object",
@@ -128,6 +158,24 @@
                     "hidden": true,
                     "fa_icon": "fas fa-users-cog"
                 }
+            }
+        },
+        "bam_qc": {
+           "title": "Alignment BAM QC evaluation",
+            "type": "object",
+            "description": "Options for alignment qc",
+            "help_text": "These options allow customization of alignment BAM qc evaluation",
+            "properties": {
+                "skip_mosdepth": {
+                    "type": "boolean",
+                    "description": "Option to skip mosdepth for alignment QC",
+                    "fa_icon": "fas fa-forward"
+                },
+                "skip_bamcoverage": {
+                    "type": "boolean",
+                    "description": "Option to skip bamcoverage for alignment QC",
+                    "fa_icon": "fas fa-forward"
+                },
             }
         },
         "generic_options": {

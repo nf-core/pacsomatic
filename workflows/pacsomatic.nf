@@ -12,10 +12,14 @@ include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_pacs
 include { checkParameters        } from '../subworkflows/local/utils_pacsomatic_pipeline'
 include { checkPathParameters    } from '../subworkflows/local/utils_pacsomatic_pipeline'
 
-include { PREPARE_GENOME         } from '../subworkflows/local/prepare_genome'
+include { PREPARE_GENOME          } from '../subworkflows/local/prepare_genome'
+include { BAM_SORT_STATS_SAMTOOLS } from '../subworkflows/nf-core/bam_sort_stats_samtools/main'
 
 include { PBTK_PBMERGE           } from '../modules/local/pbtk/pbmerge/main'
 include { PBMM2_ALIGN            } from '../modules/nf-core/pbmm2/align/main'
+
+include { MOSDEPTH               } from '../modules/nf-core/mosdepth/main'
+include	{ DEEPTOOLS_BAMCOVERAGE  } from	'../modules/nf-core/deeptools/bamcoverage/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -77,22 +81,57 @@ workflow PACSOMATIC {
     PREPARE_GENOME( params.fasta )
     ch_versions = ch_versions.mix(PREPARE_GENOME.out.versions)
 
-    genome_fasta = PREPARE_GENOME.out.prepped_genome_fasta
+    ch_genome_fasta = PREPARE_GENOME.out.prepped_genome_fasta
+    ch_genome_fai   = PREPARE_GENOME.out.genome_fai
 
     // Alignment with PacBio PBMM2
     ch_pbmm2_input = ch_input_sample
         .map { meta, bam, _pbi ->
             [ meta, bam ]
         }
-    PBMM2_ALIGN ( ch_pbmm2_input, genome_fasta )
+    PBMM2_ALIGN ( ch_pbmm2_input, ch_genome_fasta )
     ch_versions = ch_versions.mix(PBMM2_ALIGN.out.versions.first())
 
     //
     /* YOUR ANALYSIS BEFORE PAIRING STARTS HERE */
     //
+    BAM_SORT_STATS_SAMTOOLS(PBMM2_ALIGN.out.bam, ch_genome_fasta)
+
+    // join the bam and index based on meta.id
+    ch_ordered_bam = BAM_SORT_STATS_SAMTOOLS.out.bam
+    ch_ordered_bai = BAM_SORT_STATS_SAMTOOLS.out.bai
+
+    ch_bam_bai = ch_ordered_bam.join(ch_ordered_bai, by: [0])
+    ch_versions = ch_versions.mix(BAM_SORT_STATS_SAMTOOLS.out.versions)
+
+    // these files go for multiqc
+    ch_ordered_stats    = BAM_SORT_STATS_SAMTOOLS.out.stats
+    ch_ordered_flagstat = BAM_SORT_STATS_SAMTOOLS.out.flagstat
+    ch_ordered_idxstats = BAM_SORT_STATS_SAMTOOLS.out.idxstats
+
+    ch_mosdepth_multiqc_files = Channel.empty()
+    if ( !params.skip_qc && !params.skip_mosdepth ) {
+        ch_mosdepth_input = ch_bam_bai.map{ meta, bam, bai ->
+            [ meta, bam, bai, [] ]
+        }
+        MOSDEPTH (ch_mosdepth_input, ch_genome_fasta)
+
+        ch_mosdepth_multiqc_files = ch_mosdepth_multiqc_files.mix(MOSDEPTH.out.global_txt)
+        ch_mosdepth_multiqc_files = ch_mosdepth_multiqc_files.mix(MOSDEPTH.out.summary_txt)
+        ch_versions = ch_versions.mix(MOSDEPTH.out.versions.first())
+    }
+
+    // generates a coverage track using deeptools/bamcoverage
+    if ( !params.skip_qc && !params.skip_bamcoverage )  {
+        DEEPTOOLS_BAMCOVERAGE(
+            ch_bam_bai,
+            ch_genome_fasta.map{it[1]},
+            ch_genome_fai.map{it[1]},
+            [[:], []])
+        ch_versions = ch_versions.mix(DEEPTOOLS_BAMCOVERAGE.out.versions.first())
+    }
 
     ch_processed = PBMM2_ALIGN.out.bam
-
 
     //
     // Pre-pare tumor-normal pairs for variant calling
@@ -131,7 +170,7 @@ workflow PACSOMATIC {
             ]
             [ pair_meta, tumor_bam, normal_bam ]
         }
-    ch_tn_pairs.view()
+    // ch_tn_pairs.view()
 
     //
     // Collate and save software versions
@@ -145,48 +184,62 @@ workflow PACSOMATIC {
         ).set { ch_collated_versions }
 
 
-    //
-    // MODULE: MultiQC
-    //
-    ch_multiqc_config        = Channel.fromPath(
-        "$projectDir/assets/multiqc_config.yml", checkIfExists: true)
-    ch_multiqc_custom_config = params.multiqc_config ?
-        Channel.fromPath(params.multiqc_config, checkIfExists: true) :
-        Channel.empty()
-    ch_multiqc_logo          = params.multiqc_logo ?
-        Channel.fromPath(params.multiqc_logo, checkIfExists: true) :
-        Channel.empty()
+    if ( !params.skip_qc && !params.skip_multiqc ) {
 
-    summary_params      = paramsSummaryMap(
-        workflow, parameters_schema: "nextflow_schema.json")
-    ch_workflow_summary = Channel.value(paramsSummaryMultiqc(summary_params))
-    ch_multiqc_files = ch_multiqc_files.mix(
-        ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-    ch_multiqc_custom_methods_description = params.multiqc_methods_description ?
-        file(params.multiqc_methods_description, checkIfExists: true) :
-        file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
-    ch_methods_description                = Channel.value(
-        methodsDescriptionText(ch_multiqc_custom_methods_description))
+        //
+        // MODULE: MultiQC
+        //
+        ch_multiqc_config        = Channel.fromPath(
+            "$projectDir/assets/multiqc_config.yml", checkIfExists: true)
+        ch_multiqc_custom_config = params.multiqc_config ?
+            Channel.fromPath(params.multiqc_config, checkIfExists: true) :
+            Channel.empty()
+        ch_multiqc_logo          = params.multiqc_logo ?
+            Channel.fromPath(params.multiqc_logo, checkIfExists: true) :
+            Channel.empty()
 
-    ch_multiqc_files = ch_multiqc_files.mix(ch_collated_versions)
-    ch_multiqc_files = ch_multiqc_files.mix(
-        ch_methods_description.collectFile(
-            name: 'methods_description_mqc.yaml',
-            sort: true
+        summary_params      = paramsSummaryMap(
+            workflow, parameters_schema: "nextflow_schema.json")
+        ch_workflow_summary = Channel.value(paramsSummaryMultiqc(summary_params))
+        ch_multiqc_files = ch_multiqc_files.mix(
+            ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
+        ch_multiqc_custom_methods_description = params.multiqc_methods_description ?
+            file(params.multiqc_methods_description, checkIfExists: true) :
+            file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
+        ch_methods_description                = Channel.value(
+            methodsDescriptionText(ch_multiqc_custom_methods_description))
+
+        ch_multiqc_files = ch_multiqc_files.mix(ch_collated_versions)
+        ch_multiqc_files = ch_multiqc_files.mix(
+            ch_methods_description.collectFile(
+                name: 'methods_description_mqc.yaml',
+                sort: true
+            )
         )
-    )
 
-    MULTIQC (
-        ch_multiqc_files.collect(),
-        ch_multiqc_config.toList(),
-        ch_multiqc_custom_config.toList(),
-        ch_multiqc_logo.toList(),
-        [],
-        []
-    )
+        // post-alignment qc files
+        ch_multiqc_files = ch_multiqc_files.mix(ch_ordered_stats.collect{it[1]}.ifEmpty([]))
+        ch_multiqc_files = ch_multiqc_files.mix(ch_ordered_flagstat.collect{it[1]}.ifEmpty([]))
+        ch_multiqc_files = ch_multiqc_files.mix(ch_ordered_idxstats.collect{it[1]}.ifEmpty([]))
+        ch_multiqc_files = ch_multiqc_files.mix(ch_mosdepth_multiqc_files.collect{it[1]}.ifEmpty([]))
 
-    emit:multiqc_report = MULTIQC.out.report.toList() // channel: /path/to/multiqc_report.html
-    versions       = ch_versions                 // channel: [ path(versions.yml) ]
+        MULTIQC (
+            ch_multiqc_files.collect(),
+            ch_multiqc_config.toList(),
+            ch_multiqc_custom_config.toList(),
+            ch_multiqc_logo.toList(),
+            [],
+            []
+        )
+
+        ch_multiqc_report = MULTIQC.out.report
+        ch_versions = ch_versions.mix(MULTIQC.out.versions)
+
+    }
+
+    emit:
+    multiqc_report = ch_multiqc_report.toList() // channel: /path/to/multiqc_report.html
+    versions       = ch_versions                // channel: [ path(versions.yml) ]
 
 }
 
