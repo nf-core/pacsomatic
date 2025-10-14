@@ -15,9 +15,8 @@ include { checkPathParameters    } from '../subworkflows/local/utils_pacsomatic_
 include { PREPARE_GENOME          } from '../subworkflows/local/prepare_genome'
 include { BAM_SORT_STATS_SAMTOOLS } from '../subworkflows/nf-core/bam_sort_stats_samtools/main'
 
-include { PBTK_PBMERGE           } from '../modules/local/pbtk/pbmerge/main'
+include { PBTK_PBMERGE           } from '../modules/nf-core/pbtk/pbmerge/main'
 include { PBMM2_ALIGN            } from '../modules/nf-core/pbmm2/align/main'
-
 include { MOSDEPTH               } from '../modules/nf-core/mosdepth/main'
 include	{ DEEPTOOLS_BAMCOVERAGE  } from	'../modules/nf-core/deeptools/bamcoverage/main'
 
