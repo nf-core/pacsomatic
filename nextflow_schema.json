@@ -112,6 +112,26 @@
             },
             "fa_icon": "fas fa-forward"
         },
+        "variant_calling_options": {
+            "title": "Variant Calling options",
+            "type": "object",
+            "description": "Options for variant calling specifications",
+            "help_text": "These options are specific to pacsomatic and allow customization of the variant calling steps",
+            "properties": {
+                "clair3_model": {
+                    "type": "string",
+                    "description": "Name of a prepackaged Clair3 model.",
+                    "help_text": "Full list of prepackaged Clair3 models and their descriptions is provided at https://github.com/HKU-BAL/Clair3?tab=readme-ov-file#pre-trained-models.",
+                    "fa_icon": "fas fa-forward"
+                },
+                "clair3_model_path": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Directory containing Clair3 model files.",
+                    "fa_icon": "fas fa-users-cog"
+                }
+            }
+        },
         "institutional_config_options": {
             "title": "Institutional config options",
             "type": "object",
@@ -158,24 +178,6 @@
                     "hidden": true,
                     "fa_icon": "fas fa-users-cog"
                 }
-            }
-        },
-        "bam_qc": {
-           "title": "Alignment BAM QC evaluation",
-            "type": "object",
-            "description": "Options for alignment qc",
-            "help_text": "These options allow customization of alignment BAM qc evaluation",
-            "properties": {
-                "skip_mosdepth": {
-                    "type": "boolean",
-                    "description": "Option to skip mosdepth for alignment QC",
-                    "fa_icon": "fas fa-forward"
-                },
-                "skip_bamcoverage": {
-                    "type": "boolean",
-                    "description": "Option to skip bamcoverage for alignment QC",
-                    "fa_icon": "fas fa-forward"
-                },
             }
         },
         "generic_options": {
@@ -284,7 +286,13 @@
             "$ref": "#/$defs/reference_genome_options"
         },
         {
+            "$ref": "#/$defs/process_skipping_options"
+        },
+        {
             "$ref": "#/$defs/institutional_config_options"
+        },
+        {
+            "$ref": "#/$defs/variant_calling_options"
         },
         {
             "$ref": "#/$defs/generic_options"
