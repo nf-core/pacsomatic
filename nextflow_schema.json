@@ -104,6 +104,26 @@
                     "fa_icon": "fas fa-forward",
                     "description": "Skip Bamcoverage."
                 },
+                "skip_deepsomatic": {
+                    "type": "boolean",
+                    "description": "Option to skip deepsomatic SNV_INDEL caller",
+                    "fa_icon": "fas fa-forward"
+                },
+               "skip_severus": {
+                    "type": "boolean",
+                    "description": "Option to skip severus_SV caller",
+                    "fa_icon": "fas fa-forward"
+                },
+                "skip_cnvkit": {
+                    "type": "boolean",
+                    "description": "Option to skip CNVKit caller",
+                    "fa_icon": "fas fa-forward"
+                },
+                "skip_chord": {
+                    "type": "boolean",
+                    "description": "Option to skip HRD(Homologous Recombination Deficiency) estimation from the called SNV and SV variants",
+                    "fa_icon": "fas fa-forward"
+                },
                 "skip_multiqc": {
                     "type": "boolean",
                     "fa_icon": "fas fa-forward",

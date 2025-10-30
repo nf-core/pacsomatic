@@ -1,0 +1,286 @@
+<!--
+  ~ Copyright 2013-2024, Seqera Labs
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<html>
+<head>
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
+</head>
+<body>
+<pre class="mermaid" style="text-align: center;">
+flowchart TB
+    subgraph " "
+    v2["Channel.fromList"]
+    v19[" "]
+    v20[" "]
+    v21["get_sizes"]
+    v29["ch_fasta"]
+    v34["index_format"]
+    v79[" "]
+    v92["Channel.of"]
+    v93["Channel.of"]
+    v101["Channel.of"]
+    v104["Channel.of"]
+    v135["genome_dict"]
+    v141["Channel.of"]
+    v142["Channel.of"]
+    v143["panel_of_normals"]
+    v151["Channel.of"]
+    v160["Channel.of"]
+    v163["Channel.fromPath"]
+    v166["ch_workflow_summary"]
+    v170["ch_methods_description"]
+    v189["replace_names"]
+    v190["sample_names"]
+    end
+    subgraph NFCORE_PACSOMATIC
+    subgraph PACSOMATIC
+    v9([PBTK_PBMERGE])
+    subgraph PREPARE_GENOME
+    v22([GENOME_FAIDX])
+    v78(( ))
+    v130(( ))
+    end
+    v30([PBMM2_ALIGN])
+    subgraph BAM_SORT_STATS_SAMTOOLS
+    v35([SAMTOOLS_SORT])
+    v43([SAMTOOLS_INDEX])
+    subgraph BAM_STATS_SAMTOOLS
+    v51([SAMTOOLS_STATS])
+    v53([SAMTOOLS_FLAGSTAT])
+    v55([SAMTOOLS_IDXSTATS])
+    end
+    v47(( ))
+    v58(( ))
+    end
+    v62([MOSDEPTH])
+    v80([DEEPTOOLS_BAMCOVERAGE])
+    v94([DEEPSOMATIC])
+    v105([SEVERUS])
+    v122([UNZIPFILES])
+    v136([CHORD])
+    v144([CNVKIT_BATCH])
+    v154([CNVKIT_CALL])
+    v191([MULTIQC])
+    v5(( ))
+    v10(( ))
+    v77(( ))
+    v120(( ))
+    v129(( ))
+    v152(( ))
+    v186(( ))
+    v187(( ))
+    v188(( ))
+    v196(( ))
+    end
+    end
+    subgraph " "
+    v23[" "]
+    v24[" "]
+    v25[" "]
+    v36[" "]
+    v37[" "]
+    v38[" "]
+    v39[" "]
+    v40[" "]
+    v44[" "]
+    v63[" "]
+    v64[" "]
+    v65[" "]
+    v66[" "]
+    v67[" "]
+    v68[" "]
+    v69[" "]
+    v70[" "]
+    v71[" "]
+    v72[" "]
+    v81[" "]
+    v82[" "]
+    v95[" "]
+    v96[" "]
+    v97[" "]
+    v106[" "]
+    v107[" "]
+    v108[" "]
+    v109[" "]
+    v110[" "]
+    v111[" "]
+    v112[" "]
+    v113[" "]
+    v114[" "]
+    v115[" "]
+    v116[" "]
+    v117[" "]
+    v118[" "]
+    v119[" "]
+    v123[" "]
+    v128[" "]
+    v132[" "]
+    v134[" "]
+    v137[" "]
+    v138[" "]
+    v145[" "]
+    v146[" "]
+    v147[" "]
+    v148[" "]
+    v149[" "]
+    v155[" "]
+    v192[" "]
+    v193[" "]
+    v195["versions"]
+    v198[" "]
+    end
+    v2 --> v5
+    v5 --> v9
+    v9 --> v5
+    v9 --> v10
+    v19 --> v22
+    v20 --> v22
+    v21 --> v22
+    v22 --> v25
+    v22 --> v24
+    v22 --> v23
+    v22 --> v94
+    v22 --> v144
+    v22 --> v10
+    v22 --> v78
+    v22 --> v130
+    v29 --> v30
+    v29 --> v35
+    v29 --> v51
+    v29 --> v62
+    v29 --> v94
+    v29 --> v144
+    v29 --> v77
+    v29 --> v129
+    v5 --> v30
+    v30 --> v35
+    v30 --> v10
+    v34 --> v35
+    v35 --> v43
+    v35 --> v40
+    v35 --> v39
+    v35 --> v38
+    v35 --> v37
+    v35 --> v36
+    v35 --> v10
+    v35 --> v47
+    v35 --> v58
+    v43 --> v44
+    v43 --> v10
+    v43 --> v47
+    v43 --> v58
+    v47 --> v51
+    v51 --> v10
+    v47 --> v53
+    v53 --> v10
+    v47 --> v55
+    v55 --> v10
+    v58 --> v62
+    v62 --> v72
+    v62 --> v71
+    v62 --> v70
+    v62 --> v69
+    v62 --> v68
+    v62 --> v67
+    v62 --> v66
+    v62 --> v65
+    v62 --> v64
+    v62 --> v63
+    v62 --> v10
+    v79 --> v80
+    v58 --> v80
+    v77 --> v80
+    v78 --> v80
+    v80 --> v82
+    v80 --> v81
+    v80 --> v10
+    v92 --> v94
+    v93 --> v94
+    v58 --> v94
+    v94 --> v122
+    v94 --> v97
+    v94 --> v96
+    v94 --> v95
+    v94 --> v10
+    v101 --> v58
+    v104 --> v105
+    v58 --> v105
+    v105 --> v119
+    v105 --> v118
+    v105 --> v117
+    v105 --> v116
+    v105 --> v115
+    v105 --> v114
+    v105 --> v113
+    v105 --> v112
+    v105 --> v111
+    v105 --> v110
+    v105 --> v109
+    v105 --> v108
+    v105 --> v107
+    v105 --> v106
+    v105 --> v10
+    v105 --> v120
+    v122 --> v123
+    v122 --> v120
+    v120 --> v128
+    v129 --> v132
+    v130 --> v134
+    v135 --> v136
+    v120 --> v136
+    v129 --> v136
+    v130 --> v136
+    v136 --> v138
+    v136 --> v137
+    v136 --> v10
+    v141 --> v144
+    v142 --> v144
+    v143 --> v144
+    v58 --> v144
+    v144 --> v149
+    v144 --> v148
+    v144 --> v147
+    v144 --> v146
+    v144 --> v145
+    v144 --> v10
+    v144 --> v152
+    v151 --> v152
+    v152 --> v154
+    v154 --> v155
+    v154 --> v10
+    v160 --> v10
+    v163 --> v186
+    v166 --> v10
+    v170 --> v10
+    v189 --> v191
+    v190 --> v191
+    v10 --> v191
+    v186 --> v191
+    v187 --> v191
+    v188 --> v191
+    v191 --> v193
+    v191 --> v192
+    v191 --> v10
+    v191 --> v196
+    v10 --> v195
+    v196 --> v198
+
+</pre>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, maxTextSize: Number.MAX_SAFE_INTEGER, maxEdges: Number.MAX_SAFE_INTEGER });
+</script>
+</body>
+</html>
