@@ -1,0 +1,48 @@
+name: "svpack_filter"
+description: Filter structural variants in VCF format based on various criteria
+keywords:
+  - structural variants
+  - sv
+  - vcf
+  - filter
+  - variant calling
+tools:
+  - svpack:
+      description: Tools for filtering, comparing, and annotating structural variant (SV) calls in VCF format
+      homepage: https://github.com/PacificBiosciences/svpack
+      documentation: https://github.com/PacificBiosciences/svpack
+      tool_dev_url: https://github.com/PacificBiosciences/svpack
+      licence: ["BSD-3-Clause-Clear"]
+
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - vcf:
+        type: file
+        description: Input VCF or VCF.GZ file containing structural variants
+        pattern: "*.{vcf,vcf.gz}"
+
+output:
+  vcf:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+      - "*.filtered.vcf":
+          type: file
+          description: Filtered VCF file
+          pattern: "*.filtered.vcf"
+  versions:
+    - "versions.yml":
+        type: file
+        description: File containing software versions
+        pattern: "versions.yml"
+
+authors:
+  - "@haidyi"
+maintainers:
+  - "@haidyi"

@@ -1,0 +1,578 @@
+#!/usr/bin/env python
+
+# BSD 3-Clause License
+
+# Copyright (c) 2024, Pacific Biosciences of California, Inc.
+
+# All rights reserved.
+
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted (subject to the limitations in the
+# disclaimer below) provided that the following conditions are met:
+
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+
+#  * Neither the name of Pacific Biosciences nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+
+# NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE
+# GRANTED BY THIS LICENSE. THIS SOFTWARE IS PROVIDED BY PACIFIC
+# BIOSCIENCES AND ITS CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL PACIFIC BIOSCIENCES OR ITS
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+# USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+# OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+
+import argparse
+heapq=None
+collections=None
+pysam=None
+sys=None
+
+def get_svlen_abs(v):
+    """Absolute value of structural variant length"""
+    # Obtain SVLEN from INFO when available
+    if "SVLEN" in v.info:
+        svlen = v.info["SVLEN"][0] if type(v.info["SVLEN"]) is tuple else v.info["SVLEN"]
+        return abs(int(svlen))
+    # Calculate SVLEN from REF and ALT alleles for INS and DEL when ALT is not a symbolic allele
+    if "SVTYPE" in v.info and v.info["SVTYPE"] in ("INS","DEL") and "<" not in v.alts[0]:
+        return abs(len(v.alts[0])-len(v.ref))
+    # For BNDs, return MATEDIST for BNDs if available and None otherwise
+    if "SVTYPE" in v.info and v.info["SVTYPE"]=="BND":
+        return abs(int(v.info["MATEDIST"])) if "MATEDIST" in v.info else None
+    # Calculate SVLEN from END INFO field when available
+    if v.stop > v.start:
+        return abs(v.stop - v.start)
+
+    return None
+
+
+
+class VariantFileStream:
+    """A stream of VariantRecords from a VCF"""
+    def __init__(self, variant_file_path, is_sorted=True):
+        save = pysam.set_verbosity(0)  # suppress [E::idx_find_and_load]
+        variant_file = pysam.VariantFile(variant_file_path)
+        pysam.set_verbosity(save)  # restore warnings
+        self.header = variant_file.header
+        self.chroms = dict([(chrom, v) for chrom,v in variant_file.header.contigs.items()])
+        self._reuse = False
+        self._prev = None
+        if is_sorted:
+            self._variant_file = variant_file
+        else:
+            # If the file is not sorted, then read it into memory and sort.
+            sortedvariants = list(sorted(variant_file, key=lambda v: self.get_variant_key(v)))
+            self._variant_file = iter(sortedvariants)
+
+    def close(self):
+        if hasattr(self._variant_file, "close"):
+            self._variant_file.close()
+
+
+    def reuse(self):
+        """Return the previous variant again"""
+        self._reuse = True
+
+
+    def __iter__(self):
+        return self
+
+
+    def get_chrom_id(self, chrom):
+        return 0
+        if chrom not in self.chroms:
+            return len(self.chroms)
+        else:
+            return self.chroms[chrom].id
+
+
+    def get_variant_key(self, variant):
+        """Key for ordering variant records. Sort by (chromid, chromname, start).  The chromosome name
+        is included to support alphabetical sorting of unlisted chromosomes after the listed chromosomes.
+        For VCFs without any listed chromosomes, this permits alphabetical sort order."""
+        key = (self.get_chrom_id(variant.chrom), variant.chrom, variant.start)
+        return key
+
+
+    def __next__(self):
+        if self._reuse:
+            self._reuse = False
+        else:
+            self._prev = next(self._variant_file)
+
+        return self._prev
+
+    def next(self):
+        return self.__next__()
+
+
+class InvalidWindowAdvance(Exception):
+    def __init__(self, prev, cur):
+        self.message = "Windower endpoints must only be moved forward, not backward.  Attempted advances from %s:%d to %s:%d." % (prev[0],prev[1],cur[0],cur[1])
+
+
+class VariantFileWindower:
+    """Provide variants from a VariantStream that are within an "active" window
+    from [start,end).  The start and end are adjustable independently but both
+    must only be moved forward."""
+
+    def __init__(self, vcfstream):
+        self._vcfstream = vcfstream
+        self.header = vcfstream.header
+        self._start = (-1, "", -1)
+        self._end = (-1, "", -1)
+        self.active = collections.deque()
+        self.eof = False
+
+
+    def close(self):
+        self._vcfstream.close()
+
+
+    def advance_end(self, chrom, end):
+        """Advance the window end position.  Read variants until one is reached
+        at `chrom:end` or later.  Add variants to the active list."""
+        key = (self._vcfstream.get_chrom_id(chrom), chrom, end)
+        if key < self._end:
+            raise InvalidWindowAdvance(self._end[1:], (chrom, end))
+
+        self._end = key
+        while True:
+            if self.eof:
+                return
+
+            # Read the next record
+            try:
+                v = next(self._vcfstream)
+                vkey = self._vcfstream.get_variant_key(v)
+            except StopIteration:
+                self.eof = True
+            else:
+                if vkey >= self._end:
+                    self._vcfstream.reuse() # reuse the record if it is still outside the window
+                    return
+                elif vkey >= self._start:
+                    # add the record to active if it is within the window
+                    self.active.append(v)
+
+
+    def advance_start(self, chrom, start):
+        """Advance the window start position.  Flush records that are now outside the window."""
+
+        key = (self._vcfstream.get_chrom_id(chrom), chrom, start)
+        if key < self._start:
+            raise InvalidWindowAdvance(self._start[1:], (chrom, start))
+
+        self._start = key
+        while len(self.active) and self._vcfstream.get_variant_key(self.active[0]) < self._start:
+            self.active.popleft()
+
+
+def filter_main(args):
+    Avcf = VariantFileStream(args.a_vcf, is_sorted=False)
+    outvcf = sys.stdout
+    outvcf.write("%s" % (Avcf.header))
+
+    for Avar in Avcf:
+        retain = True
+
+        if args.pass_only:
+            if len(Avar.filter) > 1 or (len(Avar.filter) == 1 and Avar.filter[0].name.upper() != "PASS"):
+                retain = False
+        if args.require_svtype:
+            if "SVTYPE" not in Avar.info:
+                retain = False
+        Asvlen = get_svlen_abs(Avar)
+        if Asvlen is not None and Asvlen < args.min_svlen:
+            retain = False
+
+        if bool(retain) != bool(args.invert):
+            outvcf.write("%s" % (Avar))
+
+    Avcf.close()
+    outvcf.close()
+
+
+def match_main(args):
+    Avcf = VariantFileStream(args.a_vcf, is_sorted=False)
+    Bvcf_windower = VariantFileWindower(VariantFileStream(args.b_vcf, is_sorted=False))
+
+    # Define INFO fields from Bvcf that will be applied to records in Avcf
+    if args.info is None:
+        args.info = []
+    for info in args.info:
+        if info == "*":
+            for k,v in Bvcf_windower.header.info.items():
+                if k not in Avcf.header.info:
+                    Avcf.header.add_record(v.record)
+        elif info not in Avcf.header.info and info in Bvcf_windower.header.info:
+            Avcf.header.add_record(Bvcf_windower.header.info[info].record)
+
+    outvcf = sys.stdout
+    outvcf.write("%s" % (Avcf.header))
+    for Avar in Avcf:
+        matches = list()
+
+        Asvlen = get_svlen_abs(Avar)
+
+        if "SVTYPE" in Avar.info: # only look for matches for SVs
+            Asvtype = Avar.info["SVTYPE"]
+
+            # Look for matches to Avar in Bvcf.  A match must be:
+            #    1) nearby
+            #    2) similar SVTYPE (consider INS&DUP the same)
+            #    3) similar SVLEN
+
+
+            # Advance the Bvcf window to contain variants that nearby Avar.
+            Bvcf_windower.advance_start(Avar.chrom, Avar.start - args.max_pos_diff)
+            Bvcf_windower.advance_end(Avar.chrom, Avar.start + args.max_pos_diff)
+            for Bvar in Bvcf_windower.active:
+                Bsvtype = Bvar.info.get("SVTYPE")
+                Bsvlen = get_svlen_abs(Bvar)
+
+                samesvtype = False
+                if Asvtype == Bsvtype:
+                    samesvtype = True
+                elif Asvtype in ("INS","DUP") and Bsvtype in ("INS","DUP"):
+                    samesvtype = True
+
+                if samesvtype:
+                    svlen_diff = 0 if (Asvlen is None or Bsvlen is None) else abs(Asvlen - Bsvlen)
+                    svlen_diff_perc = 0 if svlen_diff == 0 else 2 * svlen_diff / (Asvlen + Bsvlen)
+
+                    if svlen_diff <= args.max_svlen_diff:
+                        matches.append(Bvar)
+
+        bestmatch = None
+        bestmatchdiff = 0
+        if len(matches):
+            for match in matches:
+                matchsvlen = get_svlen_abs(match)
+                matchdiff = 0 if (Asvlen is None or matchsvlen is None) else abs(matchsvlen - Asvlen) + abs(match.start - Avar.start)
+
+                if bestmatch is None or matchdiff < bestmatchdiff:
+                    bestmatch = match
+                    bestmatchdiff = matchdiff
+
+
+        if len(args.info) or bool(matches) != bool(args.invert):
+            if len(matches) and len(args.info):
+                # Apply annotation from the best match, define as the one with smallest sum of differences in SVLEN and POS.
+                infos_to_apply = set()
+                for info in args.info:
+                    if info == "*":
+                        infos_to_apply.update(match.info.keys())
+                    elif info in match.info:
+                        infos_to_apply.add(info)
+                for info in infos_to_apply:
+                    if info not in Avar.info:
+                        Avar.info[info] = match.info[info]
+
+            outvcf.write("%s" % (Avar))
+
+    Avcf.close()
+    Bvcf_windower.close()
+    outvcf.close()
+
+
+class Gff:
+    class GffLine:
+        def __init__(self, l):
+            chrom,source,feature,start,end,score,strand,phase,attributes = l.rstrip("\n").split("\t")[:9]
+            self.chrom = chrom
+            self.source = source
+            self.feature = feature
+            self.start = int(start) - 1
+            self.end = int(end)
+            self.score = None if score == "." else float(score)
+            self.strand = strand
+            self.phase = phase
+            self.attributes = dict()
+            for attribute in attributes.split(";"):
+                k,v = attribute.split("=")
+                self.attributes[k] = v
+
+
+    class GffGene():
+        def __init__(self, gff_line):
+            self.chrom = gff_line.chrom
+            self.source = gff_line.source
+            self.feature = gff_line.feature
+            self.start = gff_line.start
+            self.end = gff_line.end
+            self.score = gff_line.score
+            self.strand = gff_line.strand
+            self.phase = gff_line.phase
+            self.attributes = gff_line.attributes
+            self.id = self.attributes["ID"].split(":")[1]
+            try:
+                self.symbol = self.attributes["Name"]
+            except KeyError:
+                self.symbol = self.attributes["gene_id"]
+
+            self.transcripts = []
+
+        def add_transcript(self, gff_transcript):
+            self.transcripts.append(gff_transcript)
+
+
+    class GffTranscript():
+        def __init__(self, gff_line):
+            self.chrom = gff_line.chrom
+            self.source = gff_line.source
+            self.feature = gff_line.feature
+            self.start = gff_line.start
+            self.end = gff_line.end
+            self.score = gff_line.score
+            self.strand = gff_line.strand
+            self.phase = gff_line.phase
+            self.attributes = gff_line.attributes
+            self.id = self.attributes["ID"].split(":")[1]
+            self.gene = self.attributes["Parent"].split(":")[1]
+            self.exons = []
+
+        def add_exon(self, gff_exon):
+            self.exons.append(gff_exon)
+
+
+    class GffExon():
+        def __init__(self, gff_line):
+            self.chrom = gff_line.chrom
+            self.source = gff_line.source
+            self.feature = gff_line.feature
+            self.start = gff_line.start
+            self.end = gff_line.end
+            self.score = gff_line.score
+            self.strand = gff_line.strand
+            self.phase = gff_line.phase
+            self.attributes = gff_line.attributes
+            self.transcript = self.attributes["Parent"].split(":")[1]
+            self.type = "utr5" if self.feature == "five_prime_UTR" else "utr3" if self.feature == "three_prime_UTR" else "CDS" if self.feature == "CDS" else "exon"
+
+
+    def __init__(self, gff_file):
+        genes = dict()
+        transcripts = dict()
+        exons = list()
+
+        f = open(gff_file)
+        for l in f:
+            l = l.rstrip("\n")
+            if l == "" or l.startswith("#"):
+                continue
+            gff_line = Gff.GffLine(l)
+
+            if gff_line.feature == "gene":
+                gff_gene = Gff.GffGene(gff_line)
+                genes[gff_gene.id] = gff_gene
+            elif gff_line.feature == "mRNA":
+                gff_transcript = Gff.GffTranscript(gff_line)
+                # Only retain protein-coding mRNA transcripts.
+                # Other values: non_stop_decay, nonsense_mediated_decay, polymorphic_pseudogene
+                if gff_transcript.attributes["biotype"] == "protein_coding":
+                    transcripts[gff_transcript.id] = gff_transcript
+            elif gff_line.feature in("five_prime_UTR", "three_prime_UTR", "CDS"):
+                gff_exon = Gff.GffExon(gff_line)
+                exons.append(gff_exon)
+        f.close()
+
+        # Link exons to transcripts
+        for exon in exons:
+            if exon.transcript in transcripts:
+                transcripts[exon.transcript].add_exon(exon)
+        # Link transcripts to genes
+        for transcript in transcripts.values():
+            genes[transcript.gene].add_transcript(transcript)
+
+
+        # Provide genes sorted by (chrom,start,end)
+        self.genes = list(sorted(genes.values(), key=lambda x: (x.chrom,x.start,x.end)))
+        # Group genes by chromosome, sorting by (start,end) within a chromosome
+        self.genes_by_chrom = collections.defaultdict(list)
+        for gene in self.genes:
+            self.genes_by_chrom[gene.chrom].append(gene)
+
+
+class Consequence:
+    def __init__(self, consequence, gene, transcript, biotype, strand, amino_acid_change, dna_change):
+        self.consequence = consequence
+        self.gene = gene
+        self.transcript = transcript
+        self.biotype = biotype
+        self.strand = strand
+        self.amino_acid_change = amino_acid_change
+        self.dna_change = dna_change
+
+    def __str__(self):
+        return "|".join([self.consequence, self.gene, self.transcript, self.biotype, self.strand, self.amino_acid_change, self.dna_change])
+
+
+def consequence_main(args):
+    gene_gff = Gff(args.genes_gff)
+    genes = collections.deque(gene_gff.genes)
+    activegenes = [] # Heap sorted by (chrom,chromEnd) of genes that might overlap a variant
+    Avcf = VariantFileStream(args.a_vcf, is_sorted=False)
+    Avcf.header.add_line("""##INFO=<ID=BCSQ,Number=.,Type=String,Description="Local consequence annotation. Format: Consequence|gene|transcript|biotype|strand|amino_acid_change|dna_change">""")
+    outvcf = sys.stdout
+    outvcf.write("%s" % (Avcf.header))
+
+    serialnumber = 0
+    for Avar in Avcf:
+        if "SVTYPE" in Avar.info: # Annotate SVs with consequence
+            # Add genes that start before the current variant ends to the active heap.
+            while len(genes) and (genes[0].chrom,genes[0].start) <= (Avar.chrom,Avar.stop):
+                gene = genes.popleft()
+                heapq.heappush(activegenes, ((gene.chrom,gene.end,serialnumber), gene))
+                serialnumber += 1
+            # Pop genes that end before the current variant starts
+            # and so can not overlap `Avar` or any later variants.
+            while len(activegenes) and activegenes[0][0] < (Avar.chrom,Avar.start):
+                heapq.heappop(activegenes)
+
+            # Deletion, insertion, inversion, duplication, and CNV variants
+            # impact a gene if an exon of the gene falls between the start
+            # and end of the variant.
+            consequences = []
+            svtype = Avar.info["SVTYPE"]
+            chromStart = Avar.start
+            chromEnd = Avar.stop
+            for k,gene in activegenes:
+                transcripts = set()
+                # Check if SV span overlaps the gene body.
+                if gene.chrom == Avar.chrom and min(chromEnd, gene.end) > max(chromStart, gene.start):
+                    cds = False
+                    utr = False
+                    # Check if SV span overlaps any exon of the gene.
+                    for transcript in gene.transcripts:
+                        for exon in transcript.exons:
+                            if min(chromEnd, exon.end) > max(chromStart, exon.start):
+                                if exon.type == "CDS":
+                                    cds = True
+                                else:
+                                    utr = True
+
+                    # Add only one consequence entry per gene, prioritizing CDS > UTR > INTRON.
+                    if svtype == "BND":
+                        # Breakend disrupts a gene if it lies anywhere in the gene body.
+                        csq = "bnd"
+                    else:
+                        csq = "cds" if cds else "utr" if utr else "intron"
+
+                    consequences.append(Consequence("sv:" + csq, gene.symbol, "", gene.attributes.get("biotype",""), gene.strand, "", ""))
+
+        if consequences:
+            Avar.info["BCSQ"] = ",".join([str(c) for c in consequences])
+            outvcf.write("%s" % (Avar))
+        elif not args.require_csq:
+            outvcf.write("%s" % (Avar))
+
+    Avcf.close()
+    outvcf.close()
+
+
+def tag_zygosity_main(args):
+    invcf = VariantFileStream(args.in_vcf, is_sorted=False)
+    invcf.header.add_line("""##INFO=<ID=hetalt,Number=.,Type=String,Description="Samples with heterozygous REF/ALT genotype">""")
+    invcf.header.add_line("""##INFO=<ID=homalt,Number=.,Type=String,Description="Samples with homozygous ALT/ALT or hemizygous ALT genotype">""")
+    outvcf = sys.stdout
+    outvcf.write("%s" % (invcf.header))
+    samples = set(args.samples.split(",")) if args.samples else set()
+
+    for invar in invcf:
+        hetalt_samples = set()
+        homalt_samples = set()
+        for sample in invar.samples:
+            if samples and sample not in samples:
+                continue
+            GT = invar.samples[sample].get("GT", (None,))
+            refct = len([g for g in GT if g == 0])
+            altct = len([g for g in GT if g is not None and g != 0])
+            if refct > 0 and altct > 0:
+                hetalt_samples.add(sample)
+            elif altct > 0:
+                homalt_samples.add(sample)
+        if len(hetalt_samples):
+            invar.info["hetalt"] = ",".join([str(s) for s in sorted(hetalt_samples)])
+        if len(homalt_samples):
+            invar.info["homalt"] = ",".join([str(s) for s in sorted(homalt_samples)])
+
+        outvcf.write("%s" % (invar))
+
+    invcf.close()
+    outvcf.close()
+
+
+# Define usage for command and subcommands
+parser = argparse.ArgumentParser(description="Structural variant analysis tools",
+    usage="svpack <command> [<args>]")
+subparsers = parser.add_subparsers()
+
+
+filter_parser = subparsers.add_parser("filter", help="Filter for SVs that satisfy all specified criteria")
+filter_parser.add_argument("a_vcf", metavar="A.vcf")
+filter_parser.add_argument("-v", "--invert", action="store_true", help="Invert filter, return variants that fail at least one criterion")
+filter_parser.add_argument("-p", "--pass-only", action="store_true", help="Only retain variants with FILTER of PASS or .")
+filter_parser.add_argument("--require-svtype", action="store_true", help="Only retain variants with SVTYPE INFO field")
+filter_parser.add_argument("-l", "--min-svlen", metavar="N", default=0, type=int, help="Minimum |SVLEN| for variants with length")
+filter_parser.set_defaults(func=filter_main)
+
+
+match_parser = subparsers.add_parser("match", help="Identify SVs in A.vcf that match SVs in B.vcf")
+match_parser.add_argument("a_vcf", metavar="A.vcf")
+match_parser.add_argument("b_vcf", metavar="B.vcf")
+match_parser.add_argument("-v", "--invert", action="store_true", help="Invert match, return variants in A that do not match a variant in B")
+match_parser.add_argument("-i", "--info", metavar="INFO", action="append", help="Output all records and annotate with INFO field(s) from best match in B.  Overrides -v.")
+match_parser.add_argument("-p", "--max-pos-diff", metavar="N", default=100, type=int, help="Maximum difference in POS to consider variants to match [%(default)s]")
+match_parser.add_argument("-l", "--max-svlen-diff", metavar="N", default=100, type=int, help="Maximum difference in SVLEN to consider variants to match [%(default)s]")
+match_parser.set_defaults(func=match_main)
+
+
+consequence_parser = subparsers.add_parser("consequence", help="Annotate consequence of SVs on genes")
+consequence_parser.add_argument("a_vcf", metavar="A.vcf")
+consequence_parser.add_argument("genes_gff", metavar="genes.gff")
+consequence_parser.add_argument("--require-csq", action="store_true", help="Only retain variants with a consequence annotation")
+consequence_parser.set_defaults(func=consequence_main)
+
+
+tag_zygosity_parser = subparsers.add_parser("tagzygosity", help="Add hetalt and homalt INFO tags that list samples with non-reference genotypes")
+tag_zygosity_parser.add_argument("in_vcf", metavar="IN.vcf")
+tag_zygosity_parser.add_argument("--samples", help="Comma-delimited list of samples to consider [ALL]")
+tag_zygosity_parser.set_defaults(func=tag_zygosity_main)
+
+def main():
+    # Replace Python's handlers for SIGPIPE and SIGINT (ctrl+c) with POSIX default
+    # handlers. Python's handlers turn the signals into exceptions that pollute stderr
+    # with a stack trace. Most Unix programs terminate when receiving the signals.
+    import signal
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+
+    args = parser.parse_args()
+    global pysam; import pysam
+    global sys; import sys
+    global collections; import collections
+    global heapq; import heapq
+
+    if hasattr(args, "func"):
+        args.func(args)
+
+
+if __name__ == "__main__":
+    main()
