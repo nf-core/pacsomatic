@@ -132,6 +132,26 @@
             },
             "fa_icon": "fas fa-forward"
         },
+        "variant_calling_options": {
+            "title": "Variant Calling options",
+            "type": "object",
+            "description": "Options for variant calling specifications",
+            "help_text": "These options are specific to pacsomatic and allow customization of the variant calling steps",
+            "properties": {
+                "clair3_model": {
+                    "type": "string",
+                    "description": "Name of a prepackaged Clair3 model.",
+                    "help_text": "Full list of prepackaged Clair3 models and their descriptions is provided at https://github.com/HKU-BAL/Clair3?tab=readme-ov-file#pre-trained-models.",
+                    "fa_icon": "fas fa-forward"
+                },
+                "clair3_model_path": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Directory containing Clair3 model files.",
+                    "fa_icon": "fas fa-users-cog"
+                }
+            }
+        },
         "institutional_config_options": {
             "title": "Institutional config options",
             "type": "object",

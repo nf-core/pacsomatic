@@ -21,6 +21,7 @@ include { PBMM2_ALIGN            } from '../modules/nf-core/pbmm2/align/main'
 
 include { MOSDEPTH               } from '../modules/nf-core/mosdepth/main'
 include	{ DEEPTOOLS_BAMCOVERAGE  } from	'../modules/nf-core/deeptools/bamcoverage/main'
+include { CLAIR3                 } from '../modules/nf-core/clair3/main'
 
 include { DEEPSOMATIC            } from '../modules/nf-core/deepsomatic/main'
 //include { MUTATIONALPATTERN    } from '../modules/local/mutationalpattern/main'
@@ -109,7 +110,7 @@ workflow PACSOMATIC {
     //
     /* YOUR ANALYSIS BEFORE PAIRING STARTS HERE */
     //
-    
+
     BAM_SORT_STATS_SAMTOOLS(PBMM2_ALIGN.out.bam, ch_genome_fasta)
 
     // join the bam and index based on meta.id
@@ -147,6 +148,30 @@ workflow PACSOMATIC {
     }
     
     ch_processed = ch_bam_bai // PBMM2_ALIGN.out.bam
+
+    //
+    // Germline variant calling with CLAIR3
+    //
+    if (params.clair3_model && params.clair3_model_path) {
+        log.error "Two models specified ${params.clair3_model} and ${params.clair3_model_path}, specify one of them."
+        exit 1
+    }
+    if (!params.clair3_model && !params.clair3_model_path) {
+        log.error "No clair3 model is specified, use option params.clair3_model or params.clair3_model_path."
+        exit 1
+    }
+    ch_clair3_input = ch_bam_bai.map { meta, bam, bai ->
+        def clair3_model_path = params.clair3_model_path ?
+            file(params.clair3_model_path, checkIfExists:true, dir:true) : []
+        [ meta, bam, bai, params.clair3_model, clair3_model_path, 'hifi' ]
+    }
+    CLAIR3 (
+        ch_clair3_input,
+        ch_genome_fasta,
+        ch_genome_fai
+    )
+
+    ch_versions = ch_versions.mix(CLAIR3.out.versions.first())
 
     //
     // Pre-pare tumor-normal pairs for variant calling
