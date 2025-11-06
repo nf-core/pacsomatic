@@ -454,7 +454,6 @@ workflow PACSOMATIC {
        ch_versions = ch_versions.mix(CNVKIT_CALL.out.versions)
 
     }
-    // ch_tn_pairs.view()
 
     //
     // Collate and save software versions
