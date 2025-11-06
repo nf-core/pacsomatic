@@ -1,0 +1,67 @@
+nextflow_process {
+
+    name "Test Process MUTATIONALPATTERN"
+    script "../main.nf"
+    process "MUTATIONALPATTERN"
+
+    tag "modules"
+    tag "modules_nfcore"
+    tag "mutationalpattern"
+
+    test("test - mutationalpattern") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/pacbio/vcf/FAM_snvs_annotated_ranked.vcf.gz', checkIfExists: true),
+                ]
+                input[1] = [ [ id:'hg38' ], 'BSgenome.Hsapiens.UCSC.hg38' ]
+                input[2] = '0.1'
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.mut_sig,
+                    process.out.recon_sig,
+                    process.out.type,
+                    process.out.mut_sig_boot,
+                    process.out.versions
+                ).match() }
+            )
+        }
+
+    }
+
+    test("test - mutationalpattern - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/pacbio/vcf/FAM_snvs_annotated_ranked.vcf.gz', checkIfExists: true),
+                ]
+                input[1] = [ [ id:'hg38' ], 'BSgenome.Hsapiens.UCSC.hg38' ]
+                input[2] = '0.1'
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

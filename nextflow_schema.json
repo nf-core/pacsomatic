@@ -109,26 +109,46 @@
                     "description": "Option to skip deepsomatic SNV_INDEL caller",
                     "fa_icon": "fas fa-forward"
                 },
-               "skip_severus": {
+                "skip_hiphase": {
+                    "type": "boolean",
+                    "description": "Option to skip germline hiphase for all samples",
+                    "fa_icon": "fas fa-forward"
+                },
+                "skip_somatic_hiphase": {
+                    "type": "boolean",
+                    "description": "Option to skip somatic hiphase",
+                    "fa_icon": "fas fa-forward"
+                },
+                "skip_mutationalpattern": {
+                    "type": "boolean",
+                    "description": "Option to skip mutationalpattern",
+                    "fa_icon": "fas fa-forward"
+                },
+                "skip_tumor_clonality": {
+                    "type": "boolean",
+                    "description": "Option to skip tumor_clonality",
+                    "fa_icon": "fas fa-forward"
+                },
+                "skip_severus": {
                     "type": "boolean",
                     "description": "Option to skip severus_SV caller",
                     "fa_icon": "fas fa-forward"
-                },
-                "skip_cnvkit": {
+               },
+               "skip_cnvkit": {
                     "type": "boolean",
                     "description": "Option to skip CNVKit caller",
                     "fa_icon": "fas fa-forward"
-                },
-                "skip_chord": {
+               },
+               "skip_chord": {
                     "type": "boolean",
                     "description": "Option to skip HRD(Homologous Recombination Deficiency) estimation from the called SNV and SV variants",
                     "fa_icon": "fas fa-forward"
-                },
-                "skip_multiqc": {
+               },
+               "skip_multiqc": {
                     "type": "boolean",
                     "fa_icon": "fas fa-forward",
                     "description": "Skip MultiQC."
-                }
+              }
             },
             "fa_icon": "fas fa-forward"
         },
@@ -149,6 +169,13 @@
                     "format": "directory-path",
                     "description": "Directory containing Clair3 model files.",
                     "fa_icon": "fas fa-users-cog"
+                },
+                "mutationalpattern_max_delta": {
+                    "type": "number",
+                    "default": 0.04,
+                    "fa_icon": "fas fa-wrench",
+                    "description": "mutationalpattern max_delta",
+                    "help_text": "Details, see [Mutational pattern manual](https://bioconductor.org/packages/release/bioc/html/MutationalPatterns.html).",
                 }
             }
         },
@@ -324,7 +351,13 @@
             "$ref": "#/$defs/reference_genome_options"
         },
         {
+            "$ref": "#/$defs/process_skipping_options"
+        },
+        {
             "$ref": "#/$defs/institutional_config_options"
+        },
+        {
+            "$ref": "#/$defs/variant_calling_options"
         },
         {
             "$ref": "#/$defs/generic_options"

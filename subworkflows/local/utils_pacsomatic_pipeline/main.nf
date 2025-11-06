@@ -21,7 +21,7 @@ def checkParameters() {
 
 // Check path parameters
 def checkPathParameters() {
-    def checkPathParamList = [params.fasta]
+    def checkPathParamList = [params.fasta, params.clair3_model_path]
     checkPathParamList.each { param ->
         if (param) { file(param, checkIfExists: true) }
     }

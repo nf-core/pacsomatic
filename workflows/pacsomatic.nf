@@ -3,39 +3,44 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { UNZIPFILES             } from '../modules/nf-core/unzipfiles/main'
-include { FASTQC                 } from '../modules/nf-core/fastqc/main'
-include { MULTIQC                } from '../modules/nf-core/multiqc/main'
-include { paramsSummaryMap       } from 'plugin/nf-schema'
-include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_pacsomatic_pipeline'
-include { checkParameters        } from '../subworkflows/local/utils_pacsomatic_pipeline'
-include { checkPathParameters    } from '../subworkflows/local/utils_pacsomatic_pipeline'
+include { UNZIPFILES                 } from '../modules/nf-core/unzipfiles/main'
+include { FASTQC                     } from '../modules/nf-core/fastqc/main'
+include { MULTIQC                    } from '../modules/nf-core/multiqc/main'
+include { paramsSummaryMap           } from 'plugin/nf-schema'
+include { paramsSummaryMultiqc       } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { softwareVersionsToYAML     } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { methodsDescriptionText     } from '../subworkflows/local/utils_nfcore_pacsomatic_pipeline'
+include { checkParameters            } from '../subworkflows/local/utils_pacsomatic_pipeline'
+include { checkPathParameters        } from '../subworkflows/local/utils_pacsomatic_pipeline'
 
-include { PREPARE_GENOME          } from '../subworkflows/local/prepare_genome'
-include { BAM_SORT_STATS_SAMTOOLS } from '../subworkflows/nf-core/bam_sort_stats_samtools/main'
+include { PREPARE_GENOME             } from '../subworkflows/local/prepare_genome'
+include { BAM_SORT_STATS_SAMTOOLS    } from '../subworkflows/nf-core/bam_sort_stats_samtools/main'
 
-include { PBTK_PBMERGE           } from '../modules/local/pbtk/pbmerge/main'
-include { PBMM2_ALIGN            } from '../modules/nf-core/pbmm2/align/main'
+include { PBTK_PBMERGE               } from '../modules/nf-core/pbtk/pbmerge/main'
+include { PBMM2_ALIGN                } from '../modules/nf-core/pbmm2/align/main'
+include { MOSDEPTH                   } from '../modules/nf-core/mosdepth/main'
+include	{ DEEPTOOLS_BAMCOVERAGE      } from '../modules/nf-core/deeptools/bamcoverage/main'
+include { CLAIR3                     } from '../modules/nf-core/clair3/main'
 
-include { MOSDEPTH               } from '../modules/nf-core/mosdepth/main'
-include	{ DEEPTOOLS_BAMCOVERAGE  } from	'../modules/nf-core/deeptools/bamcoverage/main'
-include { CLAIR3                 } from '../modules/nf-core/clair3/main'
+include { DEEPSOMATIC                } from '../modules/nf-core/deepsomatic/main'
+include { MUTATIONALPATTERN          } from '../modules/local/mutationalpattern/main'
+//include { ENSEMBLVEP_DOWNLOAD      } from '../modules/nf-core/ensemblvep/download/main'
+//include { ENSEMBLVEP_VEP           } from '../modules/nf-core/ensemblvep/vep/main'
+include { AMBER                      } from '../modules/local/amber/main'
+include { COBALT                     } from '../modules/local/cobalt/run/main'
+include { COBALT_PANEL_NORMALISATION } from '../modules/local/cobalt/panel_normalisation/main'
 
-include { DEEPSOMATIC            } from '../modules/nf-core/deepsomatic/main'
-//include { MUTATIONALPATTERN    } from '../modules/local/mutationalpattern/main'
-//include { ENSEMBLVEP_DOWNLOAD    } from '../modules/nf-core/ensemblvep/download/main'
-//include { ENSEMBLVEP_VEP         } from '../modules/nf-core/ensemblvep/vep/main'
+include { SEVERUS                    } from '../modules/nf-core/severus/main'
+//include { ANNOTSV_ANNOTSV          } from '../modules/nf-core/annotsv/annotsv/main'
 
-include { SEVERUS                } from '../modules/nf-core/severus/main'
-//include { ANNOTSV_ANNOTSV        } from '../modules/nf-core/annotsv/annotsv/main'
+include { CHORD                      } from '../modules/local/chord/main'
 
-include { CHORD                  } from '../modules/local/chord/main'
+include { CNVKIT_BATCH               } from '../modules/nf-core/cnvkit/batch/main'
+include { CNVKIT_CALL                } from '../modules/nf-core/cnvkit/call/main'
 
-include { CNVKIT_BATCH           } from '../modules/nf-core/cnvkit/batch/main'
-include { CNVKIT_CALL            } from '../modules/nf-core/cnvkit/call/main'
-
+include { HIPHASE                    } from '../modules/nf-core/hiphase/main'
+include	{ HIPHASE as HIPHASE_SOMATIC } from '../modules/nf-core/hiphase/main'
+ 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -110,7 +115,6 @@ workflow PACSOMATIC {
     //
     /* YOUR ANALYSIS BEFORE PAIRING STARTS HERE */
     //
-
     BAM_SORT_STATS_SAMTOOLS(PBMM2_ALIGN.out.bam, ch_genome_fasta)
 
     // join the bam and index based on meta.id
@@ -124,7 +128,7 @@ workflow PACSOMATIC {
     ch_ordered_stats    = BAM_SORT_STATS_SAMTOOLS.out.stats
     ch_ordered_flagstat = BAM_SORT_STATS_SAMTOOLS.out.flagstat
     ch_ordered_idxstats = BAM_SORT_STATS_SAMTOOLS.out.idxstats
-    
+
     ch_mosdepth_multiqc_files = Channel.empty()
     if ( !params.skip_qc && !params.skip_mosdepth ) {
         ch_mosdepth_input = ch_bam_bai.map{ meta, bam, bai ->
@@ -146,7 +150,7 @@ workflow PACSOMATIC {
             [[:], []])
         ch_versions = ch_versions.mix(DEEPTOOLS_BAMCOVERAGE.out.versions.first())
     }
-    
+
     ch_processed = ch_bam_bai // PBMM2_ALIGN.out.bam
 
     //
@@ -172,6 +176,32 @@ workflow PACSOMATIC {
     )
 
     ch_versions = ch_versions.mix(CLAIR3.out.versions.first())
+   
+    //
+    //  Germline HiPhase
+    //
+    if (!params.skip_hiphase) {
+        ch_hiphase_vcf     = CLAIR3.out.vcf
+                             .join(CLAIR3.out.tbi)
+                             .map { meta, vcf, tbi ->
+                             [meta.id, meta, vcf, tbi]
+                             }
+
+        ch_hiphase_bam_bai = ch_bam_bai
+                            .map { meta, bam, bai ->
+                             [meta.id, meta, bam, bai]
+                             }        
+        
+        ch_hiphase_combine = ch_hiphase_vcf.combine(ch_hiphase_bam_bai, by: [0])
+                             .multiMap { meta_id, meta, vcf, tbi, meta2, bam, bai ->     
+                               vcf_tbi: [meta, vcf, tbi]
+                               bam_bai: [meta2, bam, bai]
+                              }
+         
+        HIPHASE (ch_hiphase_combine.vcf_tbi, ch_hiphase_combine.bam_bai, ch_genome_fasta)
+        ch_versions = ch_versions.mix(CLAIR3.out.versions.first())
+       
+    }
 
     //
     // Pre-pare tumor-normal pairs for variant calling
@@ -211,8 +241,55 @@ workflow PACSOMATIC {
             [ pair_meta, normal_bam, normal_bam_bai, tumor_bam, tumor_bam_bai ]
         }
     // ch_tn_bam_pairs.view()
+    
+    //
+    //  TUMOR CLONALITY using hfmtools: amber, cobalt and purple   
+    //
+    if (!params.skip_tumor_clonality) {
+        ch_amber =  ch_tn_bam_pairs  
+                    .map { meta, normal_bam, normal_bai, tumor_bam, tumor_bai ->
+                      [meta, tumor_bam, normal_bam, [], tumor_bai, normal_bai, [] ] // [ meta, tumor_bam, normal_bam, donor_bam, tumor_bai, normal_bai, donor_bai ]
+                    }
 
+       ch_amber.view()
+
+       // AMBER(ch_amber, 'V38', params.heterozygous_sites, params.target_regions_bed, params.tumor_min_depth)
+       AMBER(ch_amber, 'V38', params.heterozygous_sites, params.target_regions_bed, [])
+       //  AMBER(ch_amber, 'V38', params.heterozygous_sites, [], [])   //work
+       ch_versions          =ch_versions.mix(AMBER.out.versions)
+       ch_amber_dir         =AMBER.out.amber_dir
+                            .map { pair_meta, amber_dir ->
+                             [pair_meta.id, pair_meta, amber_dir] 
+                            } 
+      
+       ch_cobalt = ch_tn_bam_pairs
+                   .map { meta, normal_bam, normal_bai, tumor_bam, tumor_bai ->
+                      [ meta, tumor_bam, normal_bam, tumor_bai, normal_bai ] 
+                   }
+       
+       COBALT(ch_cobalt, params.gc_profile, params.diploid_regions, params.target_region_normalisation, [:])
+       // COBALT(ch_cobalt, params.gc_profile, [], [],[:]) //work
+       ch_versions          =ch_versions.mix(COBALT.out.versions)
+       ch_cobalt_dir        =COBALT.out.cobalt_dir
+                             .map { pair_meta, cobalt_dir ->
+                               [pair_meta.id, pair_meta, cobalt_dir ]
+                             }  
+
+       ch_cobalt_panel_normalisation=ch_amber_dir.combine(ch_cobalt_dir, by:[0])
+                                     .map { pair_meta_id, amber_pair_meta, amber_dir, cobalt_pair_meta, cobalt_dir ->
+                                      [amber_dir, cobalt_dir]
+                                     }
+       /*      
+       COBALT_PANEL_NORMALISATION(ch_cobalt_panel_normalisation, 'V38', params.gc_profile, params.target_regions_bed)
+       ch_versions          =ch_versions.mix(COBALT_PANEL_NORMALISATION.out.versions) 
+       */                
+    }
+
+    //
+    // DEEPSOMATIC for Somatic SNV_INDEL calling
+    //
     ch_somatic_snv_vcf_gz= Channel.empty()
+    ch_somatic_snv_vcf_tbi= Channel.empty()
     if (!params.skip_deepsomatic)  {
         ch_deepsomatic_tn_bam_pairs =  ch_tn_bam_pairs // as order  [meta, normal_bam, normal_bai, tumor_bam, tumor_bai]
         ch_deepsomatic_interval     =  channel.of( [[:], []] )  // channel.of( [[:], "$projectDir/assets/dummy_file.bed"] )
@@ -220,10 +297,14 @@ workflow PACSOMATIC {
 
         DEEPSOMATIC(ch_deepsomatic_tn_bam_pairs, ch_deepsomatic_interval, ch_genome_fasta, ch_genome_fai, ch_deepsomatic_gzi)
         ch_somatic_snv_vcf_gz=DEEPSOMATIC.out.vcf
+        ch_somatic_snv_vcf_tbi= DEEPSOMATIC.out.vcf_tbi
         ch_versions          =ch_versions.mix(DEEPSOMATIC.out.versions)
     }
 
-    /*
+    // 
+    // VEP for somatic SNV annotation
+    //
+    /* 
     if (!params.skip_deepsomatic && !params.skip_vep) {
         ch_vep_download=Channel.of( [[:], "${params.vep_assembly}", "${params.vep_species}", "${params.vep_cache_version}"]) // meta, assembly, species, cache_version
         ENSEMBLVEP_DOWNLOAD(ch_vep_download)
@@ -239,7 +320,36 @@ workflow PACSOMATIC {
         ch_versions        = ch_versions.mix(ENSEMBLVEP_VEP.out.versions)
     }
     */
+   
+   //
+   // SOMATIC HiPhasing for tumor bams   
+   //
+   if ( !params.skip_deepsomatic && !params.skip_somatic_hiphase) {
+       ch_somatic_hiphasing_vcf = ch_somatic_snv_vcf_gz.join(ch_somatic_snv_vcf_tbi)
+                                  .map { pair_meta, snv_vcf, vcf_tbi ->
+                                  def patient_tumor_id= "${pair_meta.patient}_${pair_meta.tumor_id}"
+                                  [ patient_tumor_id, pair_meta, snv_vcf, vcf_tbi]
+                                  }
+        
+       ch_somatic_hiphasing_bam_bai= ch_tumors
+                                     .map { patient, meta, bam, bai ->
+                                      [meta.id, meta, bam, bai]
+                                    }
+      
+       ch_somatic_hiphasing_combine= ch_somatic_hiphasing_vcf.combine(ch_somatic_hiphasing_bam_bai, by: 0 )
+                                     .multiMap {meta_id,  meta, vcf, tbi, meta2, bam, bai ->
+                                     bam_bai: [meta2, bam, bai]
+                                     vcf_tbi: [meta, vcf, tbi]
+                                    }
 
+      HIPHASE_SOMATIC(ch_somatic_hiphasing_combine.vcf_tbi, ch_somatic_hiphasing_combine.bam_bai, ch_genome_fasta ) 
+      ch_versions        = ch_versions.mix(HIPHASE_SOMATIC.out.versions)      
+   }
+   
+    
+    //
+    // SEVERUS for Somatic SV calling
+    //
     ch_somatic_sv_vcf = Channel.empty()
     if (!params.skip_severus) {
         ch_severus_phasing_vcf   = channel.of([[]])  // $projectDir/assets/dummy_file.vcf
@@ -261,6 +371,9 @@ workflow PACSOMATIC {
         ch_versions	  = ch_versions.mix(SEVERUS.out.versions)
     }
     
+    //
+    //  CHORD using SNV and SV calling results
+    //
     if( !params.skip_deepsomatic && !params.skip_severus && !params.skip_chord) {
         UNZIPFILES (ch_somatic_snv_vcf_gz)
         ch_somatic_snv_vcf = UNZIPFILES.out.files
@@ -296,15 +409,19 @@ workflow PACSOMATIC {
         ch_versions        = ch_versions.mix(CHORD.out.versions)
     }
     
-    /*
+    //
+    //  MUTATIONPATTERN for SNV mutatation signature 
+    //
     if (!params.skip_mutationalpattern) {
        ch_mutationalpattern_vcf   = ch_somatic_snv_vcf_gz
-       ch_mutationalpattern_genome= ch_genome_fasta
-       MUTATIONALPATTERN(ch_mutationalpattern_vcf, ch_mutationalpattern_genome, "${params.mutationalpattern_max_delta}")
+       ch_mutationalpattern_genome= channel.of( [ [ id:'hg38' ], 'BSgenome.Hsapiens.UCSC.hg38' ] )   //  ch_genome_fasta
+       MUTATIONALPATTERN(ch_mutationalpattern_vcf, ch_mutationalpattern_genome, params.mutationalpattern_max_delta)
        ch_versions        = ch_versions.mix(MUTATIONALPATTERN.out.versions)
     }
-    */
-
+    
+    //
+    // CNVKIT for somatic CNV calling
+    //
     if (!params.skip_cnvkit) {
        //  First step as  CNVKit Batch
        ch_cnvkit_tn_bam_pairs = ch_tn_bam_pairs
@@ -337,6 +454,7 @@ workflow PACSOMATIC {
        ch_versions = ch_versions.mix(CNVKIT_CALL.out.versions)
 
     }
+    // ch_tn_pairs.view()
 
     //
     // Collate and save software versions
