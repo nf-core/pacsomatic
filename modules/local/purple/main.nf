@@ -47,20 +47,19 @@ process PURPLE {
         bcftools filter -Oz -e 'FORMAT/AD[*]="."' "${smlv_normal_vcf}" > prepared_germline.vcf.gz
     fi
 
-    # Run PURPLE
+    # Run PURPLE  # -reference        -sv_recovery_vcf "${sv_soft_vcf}" \\
+    #        -structural_vcf "${sv_hard_vcf}" \\   -gc_profile     -run_drivers \\
+
     purple \\
         $args \\
         -tumor "${tumor_sample}" \\
         -reference "${normal_sample}" \\
-        -sv_recovery_vcf "${sv_soft_vcf}" \\
-        -structural_vcf "${sv_hard_vcf}" \\
         $smlv_tumor_arg \\
         $smlv_normal_arg \\
         -amber "${amber}" \\
         -cobalt "${cobalt}" \\
         -output_dir purple/ \\
         -gc_profile "${gc_profile}" \\
-        -run_drivers \\
         -driver_gene_panel "${driver_gene_panel}" \\
         -ensembl_data_dir "${ensembl_data_dir}" \\
         -somatic_hotspots "${sage_known_hotspots_somatic}" \\
@@ -71,10 +70,11 @@ process PURPLE {
         -threads ${task.cpus}
 
     # PURPLE can fail silently, check that at least the PURPLE SV VCF is created
-    if [ ! -s "purple/${tumor_sample}.purple.sv.vcf.gz" ]; then
-        echo "ERROR: PURPLE output file not created or empty" >&2
-        exit 1
-    fi
+    # if [ ! -s "purple/${tumor_sample}.purple.sv.vcf.gz" ]; then
+    #    echo "ERROR: PURPLE output file not created or empty" >&2
+    #    exit 1
+    # fi
+   
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

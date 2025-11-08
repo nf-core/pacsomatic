@@ -114,6 +114,11 @@
                     "description": "Option to skip germline hiphase for all samples",
                     "fa_icon": "fas fa-forward"
                 },
+                "skip_pbcpgtools": {
+                    "type": "boolean",
+                    "description": "Option to skip pb_cpg_tools",
+                    "fa_icon": "fas fa-forward"
+                },
                 "skip_somatic_hiphase": {
                     "type": "boolean",
                     "description": "Option to skip somatic hiphase",

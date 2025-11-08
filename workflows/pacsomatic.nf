@@ -29,6 +29,7 @@ include { MUTATIONALPATTERN          } from '../modules/local/mutationalpattern/
 include { AMBER                      } from '../modules/local/amber/main'
 include { COBALT                     } from '../modules/local/cobalt/run/main'
 include { COBALT_PANEL_NORMALISATION } from '../modules/local/cobalt/panel_normalisation/main'
+include { PURPLE                     } from '../modules/local/purple/main' 
 
 include { SEVERUS                    } from '../modules/nf-core/severus/main'
 //include { ANNOTSV_ANNOTSV          } from '../modules/nf-core/annotsv/annotsv/main'
@@ -40,7 +41,8 @@ include { CNVKIT_CALL                } from '../modules/nf-core/cnvkit/call/main
 
 include { HIPHASE                    } from '../modules/nf-core/hiphase/main'
 include	{ HIPHASE as HIPHASE_SOMATIC } from '../modules/nf-core/hiphase/main'
- 
+include { PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES } from '../modules/nf-core/pbcpgtools/alignedbamtocpgscores/main' 
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -176,13 +178,15 @@ workflow PACSOMATIC {
     )
 
     ch_versions = ch_versions.mix(CLAIR3.out.versions.first())
-   
+    
+    ch_vcf_tbi=CLAIR3.out.vcf.join(CLAIR3.out.tbi)    
+    
     //
     //  Germline HiPhase
     //
+    ch_hiphase_out_bam_bai= Channel.empty()
     if (!params.skip_hiphase) {
-        ch_hiphase_vcf     = CLAIR3.out.vcf
-                             .join(CLAIR3.out.tbi)
+        ch_hiphase_vcf     = ch_vcf_tbi                                               //  CLAIR3.out.vcf.join(CLAIR3.out.tbi)
                              .map { meta, vcf, tbi ->
                              [meta.id, meta, vcf, tbi]
                              }
@@ -199,10 +203,18 @@ workflow PACSOMATIC {
                               }
          
         HIPHASE (ch_hiphase_combine.vcf_tbi, ch_hiphase_combine.bam_bai, ch_genome_fasta)
-        ch_versions = ch_versions.mix(CLAIR3.out.versions.first())
+        ch_hiphase_out_bam_bai= HIPHASE.out.bam.join(HIPHASE.out.bai)
+        ch_versions = ch_versions.mix(HIPHASE.out.versions.first())
        
     }
 
+    if (!params.skip_pbcpgtools) {
+       ch_pbcpgtool=  ch_hiphase_out_bam_bai
+
+       PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES(ch_pbcpgtool)
+       ch_versions = ch_versions.mix(PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES.out.versions.first())       
+    }
+    
     //
     // Pre-pare tumor-normal pairs for variant calling
     //
@@ -242,6 +254,38 @@ workflow PACSOMATIC {
         }
     // ch_tn_bam_pairs.view()
     
+    // Generating the tumor, normal, and tumor-normal vcf channels
+    ch_vcf_by_pateint = ch_vcf_tbi
+                       .branch { meta, vcf, tbi ->
+                           normal: meta.status == 0
+                               return [ meta.patient, meta,vcf, tbi ]
+                           tumor: meta.status == 1
+                               return [ meta.patient, meta, vcf, tbi ]
+                        }
+
+    ch_vcf_normals = ch_vcf_by_pateint.normal 
+                    .map { patient, meta, vcf, tbi ->
+                           [ patient, meta, vcf, tbi ]
+                    }
+
+    ch_vcf_tumors = ch_vcf_by_pateint.tumor
+                    .map { patient, meta, vcf, tbi ->
+                           [ patient, meta, vcf, tbi ]
+                    }
+ 
+    ch_tn_vcf_pair = ch_vcf_tumors
+                     .combine(ch_vcf_normals, by: 0)
+                     .map{ patient, tumor_meta, tumor_vcf, tumor_vcf_tbi,
+                           normal_meta, normal_vcf, normal_vcf_tbi ->
+                       def pair_meta = [
+                       patient: patient,
+                       tumor_id: tumor_meta.sample,
+                       normal_id: normal_meta.sample,
+                       id: "${patient}_${tumor_meta.sample}_vs_${normal_meta.sample}"
+                       ]
+                       [ pair_meta, normal_vcf, normal_vcf_tbi, tumor_vcf, tumor_vcf_tbi ]
+                    }
+    
     //
     //  TUMOR CLONALITY using hfmtools: amber, cobalt and purple   
     //
@@ -274,12 +318,28 @@ workflow PACSOMATIC {
                              .map { pair_meta, cobalt_dir ->
                                [pair_meta.id, pair_meta, cobalt_dir ]
                              }  
+       /*
+       sv_hard_vcf= []
+       sv_hard_vcf_index =[]
+       sv_soft_vcf=[]  
+       sv_soft_vcf_index=[]
+       smlv_tumor_vcf=[]
+       smlv_normal_vcf=[]
+       */
 
+       ch_purple_amber_cobalt = AMBER.out.amber_dir.join(COBALT.out.cobalt_dir)
+                                .map { meta, amber_dir, cobalt_dir ->
+                                [ meta, amber_dir, cobalt_dir, [], [], [], [], [], [] ]
+                                }
+
+       PURPLE(ch_purple_amber_cobalt, ch_genome_fasta, ch_genome_fai, [[:],[]], '38', params.gc_profile, params.known_hotspots_somatic, params.known_hotspots_germline, params.driver_gene_panel, params.ensembl_data_dir, []) 
+      
+       /*
        ch_cobalt_panel_normalisation=ch_amber_dir.combine(ch_cobalt_dir, by:[0])
                                      .map { pair_meta_id, amber_pair_meta, amber_dir, cobalt_pair_meta, cobalt_dir ->
                                       [amber_dir, cobalt_dir]
-                                     }
-       /*      
+                                      }
+       
        COBALT_PANEL_NORMALISATION(ch_cobalt_panel_normalisation, 'V38', params.gc_profile, params.target_regions_bed)
        ch_versions          =ch_versions.mix(COBALT_PANEL_NORMALISATION.out.versions) 
        */                
