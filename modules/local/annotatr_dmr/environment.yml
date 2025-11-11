@@ -1,0 +1,9 @@
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - bioconda::bioconductor-annotatr=1.28.0
+  - bioconda::bioconductor-genomicranges=1.54.1
+  - bioconda::bioconductor-org.hs.eg.db=3.18.0
+  - bioconda::bioconductor-txdb.hsapiens.ucsc.hg38.knowngene=3.18.0
+  - conda-forge::r-data.table=1.15.4

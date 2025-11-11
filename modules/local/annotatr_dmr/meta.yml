@@ -1,0 +1,61 @@
+name: annotatr_dmr
+description: Annotate differentially methylated regions (DMRs) with genomic features using annotatr
+keywords:
+  - annotation
+  - dmr
+  - methylation
+  - genomic features
+  - epigenetics
+tools:
+  - annotatr:
+      description: Annotation of Genomic Regions to Genomic Annotations
+      homepage: https://bioconductor.org/packages/release/bioc/html/annotatr.html
+      documentation: https://bioconductor.org/packages/release/bioc/vignettes/annotatr/inst/doc/annotatr-vignette.html
+      tool_dev_url: https://github.com/rcavalcante/annotatr
+      doi: "10.1093/bioinformatics/btx183"
+      licence: ["GPL-3.0"]
+  - genomicranges:
+      description: Representation and manipulation of genomic intervals
+      homepage: https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html
+      documentation: https://bioconductor.org/packages/release/bioc/vignettes/GenomicRanges/inst/doc/GenomicRangesIntroduction.html
+      tool_dev_url: https://github.com/Bioconductor/GenomicRanges
+      doi: "10.1371/journal.pcbi.1003118"
+      licence: ["Artistic-2.0"]
+
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test' ]
+    - dmr:
+        type: file
+        description: TSV file containing differentially methylated regions (from DSS or similar tools)
+        pattern: "*.{tsv,tsv.gz,txt}"
+
+output:
+  summary:
+    - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - "*_dmr_annotation_summary.tsv.gz":
+        type: file
+        description: Gzipped TSV file containing annotation summary statistics
+        pattern: "*_dmr_annotation_summary.tsv.gz"
+  annotated:
+    - "*_*_dmrs.tsv.gz":
+        type: file
+        description: Gzipped TSV files containing DMRs split by annotation type
+        pattern: "*_*_dmrs.tsv.gz"
+  versions:
+    - "versions.yml":
+        type: file
+        description: File containing software versions
+        pattern: "versions.yml"
+
+authors:
+  - "@haidyi"
+maintainers:
+  - "@haidyi"
