@@ -24,15 +24,18 @@ include { CLAIR3                     } from '../modules/nf-core/clair3/main'
 
 include { DEEPSOMATIC                } from '../modules/nf-core/deepsomatic/main'
 include { MUTATIONALPATTERN          } from '../modules/local/mutationalpattern/main'
-//include { ENSEMBLVEP_DOWNLOAD      } from '../modules/nf-core/ensemblvep/download/main'
-//include { ENSEMBLVEP_VEP           } from '../modules/nf-core/ensemblvep/vep/main'
+include { ENSEMBLVEP_DOWNLOAD        } from '../modules/nf-core/ensemblvep/download/main'
+include { ENSEMBLVEP_VEP             } from '../modules/nf-core/ensemblvep/vep/main'
 include { AMBER                      } from '../modules/local/amber/main'
 include { COBALT                     } from '../modules/local/cobalt/run/main'
 include { COBALT_PANEL_NORMALISATION } from '../modules/local/cobalt/panel_normalisation/main'
 include { PURPLE                     } from '../modules/local/purple/main' 
 
 include { SEVERUS                    } from '../modules/nf-core/severus/main'
-//include { ANNOTSV_ANNOTSV          } from '../modules/nf-core/annotsv/annotsv/main'
+include { SVPACK_ANNOTATE            } from '../subworkflows/local/svpack_annotate/main'
+include { ANNOTSV_INSTALLANNOTATIONS } from '../modules/nf-core/annotsv/installannotations/main'
+include { ANNOTSV_ANNOTSV            } from '../modules/nf-core/annotsv/annotsv/main'
+include { TABIX_BGZIPTABIX           } from '../modules/nf-core/tabix/bgziptabix/main'
 
 include { CHORD                      } from '../modules/local/chord/main'
 
@@ -364,23 +367,31 @@ workflow PACSOMATIC {
     // 
     // VEP for somatic SNV annotation
     //
-    /* 
-    if (!params.skip_deepsomatic && !params.skip_vep) {
-        ch_vep_download=Channel.of( [[:], "${params.vep_assembly}", "${params.vep_species}", "${params.vep_cache_version}"]) // meta, assembly, species, cache_version
-        ENSEMBLVEP_DOWNLOAD(ch_vep_download)
-        vep_cache_path  =ENSEMBLVEP_DOWNLOAD.out.cache
-                         .map { meta, path_prefix -> [path_prefix]
-                         }
+    if (!params.skip_deepsomatic && !params.skip_ensemblvep) {
+        
+        vep_cache_path="${params.vep_cache}"
+        if ( !params.skip_vep_download ) {        
+            ch_vep_download=Channel.of( [[:], "${params.vep_assembly}", "${params.vep_species}", "${params.vep_cache_version}"]) // meta, assembly, species, cache_version
 
-        ch_versions        = ch_versions.mix(ENSEMBLVEP_DOWNLOAD.out.versions)
+            ENSEMBLVEP_DOWNLOAD(ch_vep_download)
+            ch_versions        = ch_versions.mix(ENSEMBLVEP_DOWNLOAD.out.versions)
 
-        ch_vep_somatic_snv_vcf_gz =ch_somatic_snv_vcf_gz.combine([[]]);
+            vep_cache_path  =ENSEMBLVEP_DOWNLOAD.out.cache
+                            .map { meta, path_prefix -> [path_prefix]
+                             }
+        }
 
-        ENSEMBLVEP_VEP(ch_vep_somatic_snv_vcf_gz, "${params.vep_assembly}", "${params.vep_species}", "${params.vep_cache_version}", vep_cache_path, ch_genome, [])
+        ch_vep_somatic_snv_vcf_gz =ch_somatic_snv_vcf_gz
+                                   .map { meta, vcf_gz ->
+                                   [ meta, vcf_gz, []]
+                                   }
+
+        ch_vep_somatic_snv_vcf_gz.view()
+
+        ENSEMBLVEP_VEP(ch_vep_somatic_snv_vcf_gz, "${params.vep_assembly}", "${params.vep_species}", "${params.vep_cache_version}", vep_cache_path, ch_genome_fasta, [])
         ch_versions        = ch_versions.mix(ENSEMBLVEP_VEP.out.versions)
     }
-    */
-   
+
    //
    // SOMATIC HiPhasing for tumor bams   
    //
@@ -407,11 +418,11 @@ workflow PACSOMATIC {
    }
    
     
-    //
-    // SEVERUS for Somatic SV calling
-    //
-    ch_somatic_sv_vcf = Channel.empty()
-    if (!params.skip_severus) {
+   //
+   // SEVERUS for Somatic SV calling
+   //
+   ch_somatic_sv_vcf = Channel.empty()
+   if (!params.skip_severus) {
         ch_severus_phasing_vcf   = channel.of([[]])  // $projectDir/assets/dummy_file.vcf
         ch_severus_tn_bam_pairs  = ch_tn_bam_pairs
         .map {
@@ -424,27 +435,73 @@ workflow PACSOMATIC {
         ch_severus_trf_bed	 = channel.of([[:],[]]) // channel.of([[:],"${params.Severus_trf_bed}"])   need a s3 bucket to store configurable bed
         SEVERUS(ch_severus_tn_bam_pairs, ch_severus_trf_bed)
         ch_somatic_sv_vcf = SEVERUS.out.somatic_vcf
-                             .map {pair_meta, sv_vcf ->
-                             [ pair_meta.id, pair_meta, sv_vcf ]
-                             } // [pair_id, pair_meta, somatic_vcf]
         // ch_somatic_sv_vcf.view()
         ch_versions	  = ch_versions.mix(SEVERUS.out.versions)
-    }
-    
-    //
-    //  CHORD using SNV and SV calling results
-    //
-    if( !params.skip_deepsomatic && !params.skip_severus && !params.skip_chord) {
+   }
+   
+   // 
+   // SV Pack filtering 
+   //
+   ch_SV_annotsv_vcf =ch_somatic_sv_vcf
+   if ( !params.skip_severus && !params.skip_svpack)
+   { 
+       ch_SVPack_vcf= ch_somatic_sv_vcf
+
+       ch_SVPack_control_vcf = channel.of([[:],"${params.SVPack_control_vcf}"])
+       ch_SVPack_ref_gff= channel.of([[:],"${params.SVPack_ref_gff}"])    
+
+       SVPACK_ANNOTATE( ch_SVPack_vcf, ch_SVPack_control_vcf, ch_SVPack_ref_gff )
+       ch_versions       = ch_versions.mix(SVPACK_ANNOTATE.out.versions)
+      
+       ch_SV_annotsv_vcf = SVPACK_ANNOTATE.out.tagged_vcf
+   }
+
+   //
+   // ANNOT_SV for Somatic SV annotation
+   //
+   if ( !params.skip_severus && !params.skip_annotsv)
+   {
+        ch_SV_annotsv_cache = channel.of([[:],"${params.annotsv_cache}"])
+        if ( !params.skip_annotsv_install )
+        {
+          ANNOTSV_INSTALLANNOTATIONS()
+          ch_versions       = ch_versions.mix(ANNOTSV_INSTALLANNOTATIONS.out.versions)
+          ch_SV_annotsv_cache = ANNOTSV_INSTALLANNOTATIONS.out.annotations
+                                     .map { AnnotSV_annotations ->
+                                      [[:], AnnotSV_annotations]
+                                     }  
+        }
+        ch_SV_annotsv_cache.view()      
+     
+        TABIX_BGZIPTABIX(ch_SV_annotsv_vcf)
+        ch_versions       = ch_versions.mix(TABIX_BGZIPTABIX.out.versions)
+         
+        ch_SV_annotsv_vcf_tbi =TABIX_BGZIPTABIX.out.gz_tbi
+                                .map { meta, vcf, tbi ->
+                                  [meta, vcf, tbi, []] // [meta, sv_vcf, sv_vcf_tbi, candidate_small_variants]
+                                }
+        ch_SV_annotsv_vcf_tbi.view()        
+        
+        ANNOTSV_ANNOTSV(ch_SV_annotsv_vcf_tbi, ch_SV_annotsv_cache, [[:],[]], [[:],[]], [[:],[]])
+        ch_versions       = ch_versions.mix(ANNOTSV_ANNOTSV.out.versions)
+   } 
+     
+   //
+   //  CHORD using SNV and SV calling results
+   //
+   if( !params.skip_deepsomatic && !params.skip_severus && !params.skip_chord) {
         UNZIPFILES (ch_somatic_snv_vcf_gz)
-        ch_somatic_snv_vcf = UNZIPFILES.out.files
+        ch_chord_somatic_snv_vcf = UNZIPFILES.out.files
                              .map {pair_meta, snv_vcf ->
                              [pair_meta.id, pair_meta, snv_vcf]
                               }
 
-        //ch_somatic_snv_vcf.view()
-        //ch_somatic_sv_vcf.view()
+        ch_chord_somatic_sv_vcf= ch_somatic_sv_vcf
+                                 .map {pair_meta, sv_vcf ->
+                                  [ pair_meta.id, pair_meta, sv_vcf ]
+                                 } // [pair_id, pair_meta, somatic_vcf]        
 
-        ch_chord_snv_sv_vcfs= ch_somatic_snv_vcf.combine(ch_somatic_sv_vcf, by :0)
+        ch_chord_snv_sv_vcfs= ch_chord_somatic_snv_vcf.combine(ch_chord_somatic_sv_vcf, by :0)
                               .map { pair_id, pair_meta, snv_vcf, pair_meta1, sv_vcf ->
                                def chord_meta = [
                                patient: pair_meta.patient,
@@ -467,22 +524,22 @@ workflow PACSOMATIC {
         CHORD(ch_chord_snv_sv_vcfs, chord_genome_fasta, chord_genome_fai, [])
 
         ch_versions        = ch_versions.mix(CHORD.out.versions)
-    }
+   }
     
-    //
-    //  MUTATIONPATTERN for SNV mutatation signature 
-    //
-    if (!params.skip_mutationalpattern) {
+   //
+   //  MUTATIONPATTERN for SNV mutatation signature 
+   //
+   if (!params.skip_mutationalpattern) {
        ch_mutationalpattern_vcf   = ch_somatic_snv_vcf_gz
        ch_mutationalpattern_genome= channel.of( [ [ id:'hg38' ], 'BSgenome.Hsapiens.UCSC.hg38' ] )   //  ch_genome_fasta
        MUTATIONALPATTERN(ch_mutationalpattern_vcf, ch_mutationalpattern_genome, params.mutationalpattern_max_delta)
        ch_versions        = ch_versions.mix(MUTATIONALPATTERN.out.versions)
-    }
+   }
     
-    //
-    // CNVKIT for somatic CNV calling
-    //
-    if (!params.skip_cnvkit) {
+   //
+   // CNVKIT for somatic CNV calling
+   //
+   if (!params.skip_cnvkit) {
        //  First step as  CNVKit Batch
        ch_cnvkit_tn_bam_pairs = ch_tn_bam_pairs
        .map {
@@ -513,12 +570,12 @@ workflow PACSOMATIC {
        CNVKIT_CALL(ch_cnvkit_cns)
        ch_versions = ch_versions.mix(CNVKIT_CALL.out.versions)
 
-    }
+   }
 
-    //
-    // Collate and save software versions
-    //
-    softwareVersionsToYAML(ch_versions)
+   //
+   // Collate and save software versions
+   //
+   softwareVersionsToYAML(ch_versions)
         .collectFile(
             storeDir: "${params.outdir}/pipeline_info",
             name: 'nf_core_'  +  'pacsomatic_software_'  + 'mqc_'  + 'versions.yml',
@@ -527,7 +584,7 @@ workflow PACSOMATIC {
         ).set { ch_collated_versions }
 
 
-    if ( !params.skip_qc && !params.skip_multiqc ) {
+   if ( !params.skip_qc && !params.skip_multiqc ) {
 
         //
         // MODULE: MultiQC

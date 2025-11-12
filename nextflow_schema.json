@@ -109,6 +109,16 @@
                     "description": "Option to skip deepsomatic SNV_INDEL caller",
                     "fa_icon": "fas fa-forward"
                 },
+                "skip_ensemblvep": {
+                    "type": "boolean",
+                    "description": "Option to skip ensemblvep for somatic SNV annotation",
+                    "fa_icon": "fas fa-forward"
+                },
+               "skip_vep_download": {
+                    "type": "boolean",
+                    "description": "Option to skip ensemblvep_down to acquire a cloud hosted vep_cache",
+                    "fa_icon": "fas fa-forward"
+                },
                 "skip_hiphase": {
                     "type": "boolean",
                     "description": "Option to skip germline hiphase for all samples",
@@ -139,6 +149,21 @@
                     "description": "Option to skip severus_SV caller",
                     "fa_icon": "fas fa-forward"
                },
+               "skip_svpack": {
+                    "type": "boolean",
+                    "description": "Option to skip SVPack for SV filtering ",
+                    "fa_icon": "fas fa-forward"
+               },
+               "skip_annotsv": {
+                    "type": "boolean",
+                    "description": "Option to skip annotsv",
+                    "fa_icon": "fas fa-forward"
+               },
+               "skip_annotsv_install": {
+                    "type": "boolean",
+                    "description": "Option to skip annotsv_install to acquire a cloud annotsv_cache",
+                    "fa_icon": "fas fa-forward"
+               },
                "skip_cnvkit": {
                     "type": "boolean",
                     "description": "Option to skip CNVKit caller",
@@ -157,7 +182,7 @@
             },
             "fa_icon": "fas fa-forward"
         },
-        "variant_calling_options": {
+        "variant_calling_annotation_options": {
             "title": "Variant Calling options",
             "type": "object",
             "description": "Options for variant calling specifications",
@@ -175,12 +200,39 @@
                     "description": "Directory containing Clair3 model files.",
                     "fa_icon": "fas fa-users-cog"
                 },
+                "vep_assembly": {
+                    "type": "string",
+                    "description": "assembly name for vep annotation, e.g GRCh38.",
+                    "fa_icon": "fas fa-users-cog"
+                }, 
+                "vep_species": {
+                    "type": "string",
+                    "description": "species name for vep annotation, e.g homo_sapiens,or mouse.",
+                    "fa_icon": "fas fa-users-cog"
+                },
+                "vep_cache_version": {
+                    "type": "string",
+                    "description": " The Ensembl VEP version",
+                    "fa_icon": "fas fa-users-cog"
+                },                
+                "vep_cache": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Directory for Ensembl VEP Cache.",
+                    "fa_icon": "fas fa-users-cog"
+                },                
                 "mutationalpattern_max_delta": {
                     "type": "number",
                     "default": 0.04,
                     "fa_icon": "fas fa-wrench",
                     "description": "mutationalpattern max_delta",
                     "help_text": "Details, see [Mutational pattern manual](https://bioconductor.org/packages/release/bioc/html/MutationalPatterns.html).",
+                },
+                "annotsv_cache": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Directory for AnnotSV Cache.",
+                    "fa_icon": "fas fa-users-cog"
                 }
             }
         },
@@ -362,7 +414,7 @@
             "$ref": "#/$defs/institutional_config_options"
         },
         {
-            "$ref": "#/$defs/variant_calling_options"
+            "$ref": "#/$defs/variant_calling_annotation_options"
         },
         {
             "$ref": "#/$defs/generic_options"
