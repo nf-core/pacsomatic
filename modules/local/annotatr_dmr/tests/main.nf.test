@@ -1,0 +1,58 @@
+nextflow_process {
+
+    name "Test Process ANNOTATR_DMR"
+    script "../main.nf"
+    process "ANNOTATR_DMR"
+
+    tag "modules"
+    tag "modules_nfcore"
+    tag "annotatr"
+    tag "annotatr_dmr"
+
+    test("dmr_annotation - tsv") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/methylation/dmr_results.tsv', checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+    test("dmr_annotation - tsv - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/methylation/dmr_results.tsv', checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+
+    }
+
+}

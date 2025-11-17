@@ -129,6 +129,11 @@
                     "description": "Option to skip pb_cpg_tools",
                     "fa_icon": "fas fa-forward"
                 },
+               "skip_dmr": {
+                    "type": "boolean",
+                    "description": "Option to skip dmr for differential methyaltion region detection and annotation",
+                    "fa_icon": "fas fa-forward"
+                },
                 "skip_somatic_hiphase": {
                     "type": "boolean",
                     "description": "Option to skip somatic hiphase",

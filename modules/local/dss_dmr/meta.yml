@@ -1,0 +1,60 @@
+name: dss_dmr
+description: Identify differentially methylated regions (DMRs) between tumor and normal samples using DSS
+keywords:
+  - methylation
+  - dmr
+  - differential
+  - bisulfite
+  - epigenetics
+tools:
+  - dss:
+      description: Dispersion shrinkage for sequencing data
+      homepage: https://bioconductor.org/packages/release/bioc/html/DSS.html
+      documentation: https://bioconductor.org/packages/release/bioc/vignettes/DSS/inst/doc/DSS.html
+      tool_dev_url: https://github.com/haowulab/DSS
+      doi: "10.1093/nar/gku182"
+      licence: ["GPL (>= 2)"]
+  - bsseq:
+      description: Analyze, manage and store bisulfite sequencing data
+      homepage: https://bioconductor.org/packages/release/bioc/html/bsseq.html
+      documentation: https://bioconductor.org/packages/release/bioc/vignettes/bsseq/inst/doc/bsseq.html
+      tool_dev_url: https://github.com/hansenlab/bsseq
+      doi: "10.1186/gb-2012-13-10-r83"
+      licence: ["Artistic-2.0"]
+
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - tumor_bed:
+        type: file
+        description: BED file containing tumor methylation counts (chr, pos, total_count, methylated_count)
+        pattern: "*.{bed,bed.gz}"
+    - normal_bed:
+        type: file
+        description: BED file containing normal/control methylation counts (chr, pos, total_count, methylated_count)
+        pattern: "*.{bed,bed.gz}"
+
+output:
+  dmr:
+    - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - "*.dmr.tsv":
+        type: file
+        description: TSV file containing identified differentially methylated regions
+        pattern: "*.dmr.tsv"
+  versions:
+    - "versions.yml":
+        type: file
+        description: File containing software versions
+        pattern: "versions.yml"
+
+authors:
+  - "@haidyi"
+maintainers:
+  - "@haidyi"

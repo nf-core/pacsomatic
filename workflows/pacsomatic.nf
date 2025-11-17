@@ -45,6 +45,8 @@ include { CNVKIT_CALL                } from '../modules/nf-core/cnvkit/call/main
 include { HIPHASE                    } from '../modules/nf-core/hiphase/main'
 include	{ HIPHASE as HIPHASE_SOMATIC } from '../modules/nf-core/hiphase/main'
 include { PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES } from '../modules/nf-core/pbcpgtools/alignedbamtocpgscores/main' 
+include { DSS_DMR                    } from '../modules/local/dss_dmr/main'
+include { ANNOTATR_DMR               } from '../modules/local/annotatr_dmr/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -210,12 +212,42 @@ workflow PACSOMATIC {
         ch_versions = ch_versions.mix(HIPHASE.out.versions.first())
        
     }
-
+    
+    //
+    //   pb_cpg methylation calling
+    //
     if (!params.skip_pbcpgtools) {
        ch_pbcpgtool=  ch_hiphase_out_bam_bai
 
        PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES(ch_pbcpgtool)
        ch_versions = ch_versions.mix(PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES.out.versions.first())       
+       
+       //
+       //  Differential methylation region detection and annotation
+       //
+       if ( !params.skip_dmr ) {
+          ch_cpg_bed =  PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES.out.combined_bed
+           .branch { meta, cpg_bed ->
+              normal: meta.status == 0
+                 return [ meta.patient,  meta, cpg_bed ]
+              tumor:  meta.status == 1
+                 return [ meta.patient, meta, cpg_bed ]
+           }          
+           
+           ch_tn_pair_dmr_bed = ch_cpg_bed.tumor
+           .combine(ch_cpg_bed.normal, by:[0])
+           .map { patient, meta, tumor_bed, meta2, normal_bed ->
+                [meta, tumor_bed, normal_bed]
+           }
+
+           DSS_DMR(ch_tn_pair_dmr_bed)
+           ch_versions = ch_versions.mix(DSS_DMR.out.versions.first())
+           
+           ch_dss_dmr_tsv= DSS_DMR.out.dmr
+           ANNOTATR_DMR(ch_dss_dmr_tsv)
+           ch_versions = ch_versions.mix(ANNOTATR_DMR.out.versions.first())
+
+       } 
     }
     
     //
@@ -304,7 +336,7 @@ workflow PACSOMATIC {
        AMBER(ch_amber, 'V38', params.heterozygous_sites, params.target_regions_bed, [])
        //  AMBER(ch_amber, 'V38', params.heterozygous_sites, [], [])   //work
        ch_versions          =ch_versions.mix(AMBER.out.versions)
-       ch_amber_dir         =AMBER.out.amber_dir
+       ch_aber_dir         =AMBER.out.amber_dir
                             .map { pair_meta, amber_dir ->
                              [pair_meta.id, pair_meta, amber_dir] 
                             } 
