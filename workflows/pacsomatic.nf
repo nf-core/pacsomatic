@@ -28,23 +28,28 @@ include { ENSEMBLVEP_DOWNLOAD        } from '../modules/nf-core/ensemblvep/downl
 include { ENSEMBLVEP_VEP             } from '../modules/nf-core/ensemblvep/vep/main'
 include { AMBER                      } from '../modules/local/amber/main'
 include { COBALT                     } from '../modules/local/cobalt/run/main'
-include { COBALT_PANEL_NORMALISATION } from '../modules/local/cobalt/panel_normalisation/main'
+//include { COBALT_PANEL_NORMALISATION } from '../modules/local/cobalt/panel_normalisation/main'
 include { PURPLE                     } from '../modules/local/purple/main' 
 
 include { SEVERUS                    } from '../modules/nf-core/severus/main'
 include { SVPACK_ANNOTATE            } from '../subworkflows/local/svpack_annotate/main'
 include { ANNOTSV_INSTALLANNOTATIONS } from '../modules/nf-core/annotsv/installannotations/main'
 include { ANNOTSV_ANNOTSV            } from '../modules/nf-core/annotsv/annotsv/main'
-include { TABIX_BGZIPTABIX           } from '../modules/nf-core/tabix/bgziptabix/main'
+include { TABIX_BGZIPTABIX as TABIX_SV_VCF } from '../modules/nf-core/tabix/bgziptabix/main'
 
+include { SAMTOOLS_DICT              } from '../modules/nf-core/samtools/dict/main'
 include { CHORD                      } from '../modules/local/chord/main'
 
 include { CNVKIT_BATCH               } from '../modules/nf-core/cnvkit/batch/main'
 include { CNVKIT_CALL                } from '../modules/nf-core/cnvkit/call/main'
 
 include { HIPHASE                    } from '../modules/nf-core/hiphase/main'
-include	{ HIPHASE as HIPHASE_SOMATIC } from '../modules/nf-core/hiphase/main'
-include { PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES } from '../modules/nf-core/pbcpgtools/alignedbamtocpgscores/main' 
+include { HIPHASE_SOMATIC            } from '../modules/local/hiphase_somatic/main'
+// include	{ HIPHASE as HIPHASE_SOMATIC } from '../modules/nf-core/hiphase/main'
+
+include { PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES as PBCPGTOOLS_NORMAL} from '../modules/nf-core/pbcpgtools/alignedbamtocpgscores/main'
+include { PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES as PBCPGTOOLS_TUMOR } from '../modules/nf-core/pbcpgtools/alignedbamtocpgscores/main'
+ 
 include { DSS_DMR                    } from '../modules/local/dss_dmr/main'
 include { ANNOTATR_DMR               } from '../modules/local/annotatr_dmr/main'
 
@@ -185,73 +190,10 @@ workflow PACSOMATIC {
     ch_versions = ch_versions.mix(CLAIR3.out.versions.first())
     
     ch_vcf_tbi=CLAIR3.out.vcf.join(CLAIR3.out.tbi)    
-    
+   
     //
-    //  Germline HiPhase
-    //
-    ch_hiphase_out_bam_bai= Channel.empty()
-    if (!params.skip_hiphase) {
-        ch_hiphase_vcf     = ch_vcf_tbi                                               //  CLAIR3.out.vcf.join(CLAIR3.out.tbi)
-                             .map { meta, vcf, tbi ->
-                             [meta.id, meta, vcf, tbi]
-                             }
-
-        ch_hiphase_bam_bai = ch_bam_bai
-                            .map { meta, bam, bai ->
-                             [meta.id, meta, bam, bai]
-                             }        
-        
-        ch_hiphase_combine = ch_hiphase_vcf.combine(ch_hiphase_bam_bai, by: [0])
-                             .multiMap { meta_id, meta, vcf, tbi, meta2, bam, bai ->     
-                               vcf_tbi: [meta, vcf, tbi]
-                               bam_bai: [meta2, bam, bai]
-                              }
-         
-        HIPHASE (ch_hiphase_combine.vcf_tbi, ch_hiphase_combine.bam_bai, ch_genome_fasta)
-        ch_hiphase_out_bam_bai= HIPHASE.out.bam.join(HIPHASE.out.bai)
-        ch_versions = ch_versions.mix(HIPHASE.out.versions.first())
-       
-    }
-    
-    //
-    //   pb_cpg methylation calling
-    //
-    if (!params.skip_pbcpgtools) {
-       ch_pbcpgtool=  ch_hiphase_out_bam_bai
-
-       PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES(ch_pbcpgtool)
-       ch_versions = ch_versions.mix(PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES.out.versions.first())       
-       
-       //
-       //  Differential methylation region detection and annotation
-       //
-       if ( !params.skip_dmr ) {
-          ch_cpg_bed =  PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES.out.combined_bed
-           .branch { meta, cpg_bed ->
-              normal: meta.status == 0
-                 return [ meta.patient,  meta, cpg_bed ]
-              tumor:  meta.status == 1
-                 return [ meta.patient, meta, cpg_bed ]
-           }          
-           
-           ch_tn_pair_dmr_bed = ch_cpg_bed.tumor
-           .combine(ch_cpg_bed.normal, by:[0])
-           .map { patient, meta, tumor_bed, meta2, normal_bed ->
-                [meta, tumor_bed, normal_bed]
-           }
-
-           DSS_DMR(ch_tn_pair_dmr_bed)
-           ch_versions = ch_versions.mix(DSS_DMR.out.versions.first())
-           
-           ch_dss_dmr_tsv= DSS_DMR.out.dmr
-           ANNOTATR_DMR(ch_dss_dmr_tsv)
-           ch_versions = ch_versions.mix(ANNOTATR_DMR.out.versions.first())
-
-       } 
-    }
-    
-    //
-    // Pre-pare tumor-normal pairs for variant calling
+    // Pre-pare tumor-normal pairs for variant calling.
+    // Generating the tumor , normal and tumot-normal bam channels
     //
 
     // Split samples by status (0=normal, 1=tumor)
@@ -264,19 +206,24 @@ workflow PACSOMATIC {
         }
 
     // Group normals and tumors by patient
-    ch_normals = ch_samples_by_patient.normal
+    ch_bam_normals_tmp = ch_samples_by_patient.normal
+
+    ch_bam_normals     = ch_bam_normals_tmp
         .map { patient, meta, bam, bai  ->
-            [ patient, meta, bam, bai ]
+            [ meta, bam, bai ]
         }
 
-    ch_tumors = ch_samples_by_patient.tumor
+    
+    ch_bam_tumors_tmp = ch_samples_by_patient.tumor
+
+    ch_bam_tumors     = ch_bam_tumors_tmp
         .map { patient, meta, bam, bai ->
-            [ patient, meta, bam, bai ]
+            [ meta, bam, bai ]
         }
 
     // Generate tumor and normal pairs for each patient
-    ch_tn_bam_pairs = ch_tumors
-        .combine(ch_normals, by: 0)
+    ch_tn_bam_pairs = ch_bam_tumors_tmp
+        .combine(ch_bam_normals_tmp, by: 0)
         .map { patient, tumor_meta, tumor_bam, tumor_bam_bai,
             normal_meta, normal_bam, normal_bam_bai ->
             def pair_meta = [
@@ -293,23 +240,27 @@ workflow PACSOMATIC {
     ch_vcf_by_pateint = ch_vcf_tbi
                        .branch { meta, vcf, tbi ->
                            normal: meta.status == 0
-                               return [ meta.patient, meta,vcf, tbi ]
+                               return [ meta.patient, meta, vcf, tbi ]
                            tumor: meta.status == 1
                                return [ meta.patient, meta, vcf, tbi ]
                         }
 
-    ch_vcf_normals = ch_vcf_by_pateint.normal 
+    ch_vcf_normals_tmp = ch_vcf_by_pateint.normal
+
+    ch_vcf_normals = ch_vcf_normals_tmp 
                     .map { patient, meta, vcf, tbi ->
-                           [ patient, meta, vcf, tbi ]
+                           [ meta, vcf, tbi ]
                     }
 
-    ch_vcf_tumors = ch_vcf_by_pateint.tumor
+    ch_vcf_tumors_tmp = ch_vcf_by_pateint.tumor
+
+    ch_vcf_tumors     = ch_vcf_tumors_tmp 
                     .map { patient, meta, vcf, tbi ->
-                           [ patient, meta, vcf, tbi ]
+                           [ meta, vcf, tbi ]
                     }
  
-    ch_tn_vcf_pair = ch_vcf_tumors
-                     .combine(ch_vcf_normals, by: 0)
+    ch_tn_vcf_pair = ch_vcf_tumors_tmp
+                     .combine(ch_vcf_normals_tmp, by: 0)
                      .map{ patient, tumor_meta, tumor_vcf, tumor_vcf_tbi,
                            normal_meta, normal_vcf, normal_vcf_tbi ->
                        def pair_meta = [
@@ -320,6 +271,32 @@ workflow PACSOMATIC {
                        ]
                        [ pair_meta, normal_vcf, normal_vcf_tbi, tumor_vcf, tumor_vcf_tbi ]
                     }
+    //
+    //  Germline HiPhase for normal channel
+    //
+    ch_hiphase_out_bam_bai= Channel.empty()
+    if (!params.skip_hiphase) {
+        ch_hiphase_vcf     =  ch_vcf_normals     //  ch_vcf_tbi //= CLAIR3.out.vcf.join(CLAIR3.out.tbi)
+                             .map { meta, vcf, tbi ->
+                             [meta.id, meta, vcf, tbi]
+                             }
+
+        ch_hiphase_bam_bai = ch_bam_normals     // ch_bam_bai
+                            .map { meta, bam, bai ->
+                             [meta.id, meta, bam, bai]
+                             }        
+        
+        ch_hiphase_combine = ch_hiphase_vcf.combine(ch_hiphase_bam_bai, by: [0])
+                             .multiMap { meta_id, meta, vcf, tbi, meta2, bam, bai ->     
+                               vcf_tbi: [meta, vcf, tbi]
+                               bam_bai: [meta2, bam, bai]
+                              }
+         
+        HIPHASE (ch_hiphase_combine.vcf_tbi, ch_hiphase_combine.bam_bai, ch_genome_fasta)
+        ch_hiphase_out_bam_bai= HIPHASE.out.bam.join(HIPHASE.out.bai)
+        ch_versions = ch_versions.mix(HIPHASE.out.versions.first())
+        
+    } 
     
     //
     //  TUMOR CLONALITY using hfmtools: amber, cobalt and purple   
@@ -330,7 +307,7 @@ workflow PACSOMATIC {
                       [meta, tumor_bam, normal_bam, [], tumor_bai, normal_bai, [] ] // [ meta, tumor_bam, normal_bam, donor_bam, tumor_bai, normal_bai, donor_bai ]
                     }
 
-       ch_amber.view()
+       // ch_amber.view()
 
        // AMBER(ch_amber, 'V38', params.heterozygous_sites, params.target_regions_bed, params.tumor_min_depth)
        AMBER(ch_amber, 'V38', params.heterozygous_sites, params.target_regions_bed, [])
@@ -353,14 +330,13 @@ workflow PACSOMATIC {
                              .map { pair_meta, cobalt_dir ->
                                [pair_meta.id, pair_meta, cobalt_dir ]
                              }  
-       /*
-       sv_hard_vcf= []
-       sv_hard_vcf_index =[]
-       sv_soft_vcf=[]  
-       sv_soft_vcf_index=[]
-       smlv_tumor_vcf=[]
-       smlv_normal_vcf=[]
-       */
+       
+       //  sv_hard_vcf= []
+       // sv_hard_vcf_index =[]
+       // sv_soft_vcf=[]  
+       // sv_soft_vcf_index=[]
+       // smlv_tumor_vcf=[]
+       // smlv_normal_vcf=[]
 
        ch_purple_amber_cobalt = AMBER.out.amber_dir.join(COBALT.out.cobalt_dir)
                                 .map { meta, amber_dir, cobalt_dir ->
@@ -369,15 +345,14 @@ workflow PACSOMATIC {
 
        PURPLE(ch_purple_amber_cobalt, ch_genome_fasta, ch_genome_fai, [[:],[]], '38', params.gc_profile, params.known_hotspots_somatic, params.known_hotspots_germline, params.driver_gene_panel, params.ensembl_data_dir, []) 
       
-       /*
-       ch_cobalt_panel_normalisation=ch_amber_dir.combine(ch_cobalt_dir, by:[0])
-                                     .map { pair_meta_id, amber_pair_meta, amber_dir, cobalt_pair_meta, cobalt_dir ->
-                                      [amber_dir, cobalt_dir]
-                                      }
+       // ch_cobalt_panel_normalisation=ch_amber_dir.combine(ch_cobalt_dir, by:[0])
+       //                              .map { pair_meta_id, amber_pair_meta, amber_dir, cobalt_pair_meta, cobalt_dir ->
+       //                               [amber_dir, cobalt_dir]
+       //                               }
        
-       COBALT_PANEL_NORMALISATION(ch_cobalt_panel_normalisation, 'V38', params.gc_profile, params.target_regions_bed)
-       ch_versions          =ch_versions.mix(COBALT_PANEL_NORMALISATION.out.versions) 
-       */                
+       //  COBALT_PANEL_NORMALISATION(ch_cobalt_panel_normalisation, 'V38', params.gc_profile, params.target_regions_bed)
+       // ch_versions          =ch_versions.mix(COBALT_PANEL_NORMALISATION.out.versions) 
+
     }
 
     //
@@ -389,6 +364,8 @@ workflow PACSOMATIC {
         ch_deepsomatic_tn_bam_pairs =  ch_tn_bam_pairs // as order  [meta, normal_bam, normal_bai, tumor_bam, tumor_bai]
         ch_deepsomatic_interval     =  channel.of( [[:], []] )  // channel.of( [[:], "$projectDir/assets/dummy_file.bed"] )
         ch_deepsomatic_gzi          =  channel.of( [[:], []] )  // channel.of( [[:], "$projectDir/assets/dummy_file.gz"] )
+        
+        // ch_deepsomatic_tn_bam_pairs.view()
 
         DEEPSOMATIC(ch_deepsomatic_tn_bam_pairs, ch_deepsomatic_interval, ch_genome_fasta, ch_genome_fai, ch_deepsomatic_gzi)
         ch_somatic_snv_vcf_gz=DEEPSOMATIC.out.vcf
@@ -418,38 +395,94 @@ workflow PACSOMATIC {
                                    [ meta, vcf_gz, []]
                                    }
 
-        ch_vep_somatic_snv_vcf_gz.view()
+       // ch_vep_somatic_snv_vcf_gz.view()
 
         ENSEMBLVEP_VEP(ch_vep_somatic_snv_vcf_gz, "${params.vep_assembly}", "${params.vep_species}", "${params.vep_cache_version}", vep_cache_path, ch_genome_fasta, [])
         ch_versions        = ch_versions.mix(ENSEMBLVEP_VEP.out.versions)
     }
 
    //
-   // SOMATIC HiPhasing for tumor bams   
+   // SOMATIC Hiphasing for tumor channel   
    //
+   ch_somatic_hiphase_out_bam_bai= Channel.empty()
    if ( !params.skip_deepsomatic && !params.skip_somatic_hiphase) {
+       ch_tumor_hiphase_vcf     = ch_vcf_tumors     //  ch_vcf_tbi //= CLAIR3.out.vcf.join(CLAIR3.out.tbi)
+                             .map { meta, vcf, tbi ->
+                             [meta.id, meta, vcf, tbi]
+                             }
+      
+
        ch_somatic_hiphasing_vcf = ch_somatic_snv_vcf_gz.join(ch_somatic_snv_vcf_tbi)
                                   .map { pair_meta, snv_vcf, vcf_tbi ->
                                   def patient_tumor_id= "${pair_meta.patient}_${pair_meta.tumor_id}"
                                   [ patient_tumor_id, pair_meta, snv_vcf, vcf_tbi]
                                   }
         
-       ch_somatic_hiphasing_bam_bai= ch_tumors
-                                     .map { patient, meta, bam, bai ->
+       ch_somatic_hiphasing_bam_bai= ch_bam_tumors
+                                     .map { meta, bam, bai ->
                                       [meta.id, meta, bam, bai]
                                     }
       
-       ch_somatic_hiphasing_combine= ch_somatic_hiphasing_vcf.combine(ch_somatic_hiphasing_bam_bai, by: 0 )
-                                     .multiMap {meta_id,  meta, vcf, tbi, meta2, bam, bai ->
+       ch_somatic_hiphasing_combine= ch_tumor_hiphase_vcf.combine(ch_somatic_hiphasing_bam_bai, by: 0 ).combine(ch_somatic_hiphasing_vcf, by: 0 )
+                                     .multiMap {meta_id,  meta, vcf, tbi, meta2, bam, bai, meta3, somatic_vcf, somatic_tbi ->
                                      bam_bai: [meta2, bam, bai]
                                      vcf_tbi: [meta, vcf, tbi]
+                                     somatic_vcf_tbi: [meta3, somatic_vcf, somatic_tbi]
                                     }
 
-      HIPHASE_SOMATIC(ch_somatic_hiphasing_combine.vcf_tbi, ch_somatic_hiphasing_combine.bam_bai, ch_genome_fasta ) 
-      ch_versions        = ch_versions.mix(HIPHASE_SOMATIC.out.versions)      
+      HIPHASE_SOMATIC(ch_somatic_hiphasing_combine.vcf_tbi, ch_somatic_hiphasing_combine.bam_bai, ch_genome_fasta, ch_somatic_hiphasing_combine.somatic_vcf_tbi) 
+      ch_somatic_hiphase_out_bam_bai = HIPHASE_SOMATIC.out.bam.join(HIPHASE_SOMATIC.out.bai)
+      ch_versions                    = ch_versions.mix(HIPHASE_SOMATIC.out.versions)      
    }
    
-    
+   //
+   //   pb_cpg methylation calling
+   //
+   if (!params.skip_pbcpgtools) {
+
+       PBCPGTOOLS_NORMAL(ch_hiphase_out_bam_bai)
+       ch_normal_cpg_bed = PBCPGTOOLS_NORMAL.out.combined_bed
+                           .map { meta, cpg_bed ->
+                           [meta.patient,  meta, cpg_bed]
+                           }
+
+       ch_versions       = ch_versions.mix(PBCPGTOOLS_NORMAL.out.versions.first())       
+              
+       
+       PBCPGTOOLS_TUMOR(ch_somatic_hiphase_out_bam_bai)
+       ch_tumor_cpg_bed = PBCPGTOOLS_TUMOR.out.combined_bed
+                          .map{ meta,	cpg_bed	->
+       	       	       	   [meta.patient, meta, cpg_bed]
+                          }
+
+       ch_versions      = ch_versions.mix(PBCPGTOOLS_TUMOR.out.versions.first())
+
+       //
+       //  Differential methylation region detection and annotation
+       //
+       if ( !params.skip_dmr && !params.skip_hiphase && !params.skip_deepsomatic && !params.skip_somatic_hiphase ) {
+           
+           // Differential methylation region detection
+           ch_tn_pair_dmr_bed = ch_tumor_cpg_bed
+           .combine(ch_normal_cpg_bed, by:[0])
+           .map { patient, meta, tumor_bed, meta2, normal_bed ->
+                [meta, tumor_bed, normal_bed]
+           }
+
+           DSS_DMR(ch_tn_pair_dmr_bed)
+           ch_versions = ch_versions.mix(DSS_DMR.out.versions.first())
+           
+           // Annotation of detected differential methylation regions
+           if ( !params.skip_dmr_anno )
+           {           
+              ch_dss_dmr_tsv= DSS_DMR.out.dmr
+              ANNOTATR_DMR(ch_dss_dmr_tsv)
+              ch_versions = ch_versions.mix(ANNOTATR_DMR.out.versions.first())
+           }
+
+       } 
+   }
+  
    //
    // SEVERUS for Somatic SV calling
    //
@@ -503,16 +536,17 @@ workflow PACSOMATIC {
                                       [[:], AnnotSV_annotations]
                                      }  
         }
-        ch_SV_annotsv_cache.view()      
+        // ch_SV_annotsv_cache.view()      
      
-        TABIX_BGZIPTABIX(ch_SV_annotsv_vcf)
-        ch_versions       = ch_versions.mix(TABIX_BGZIPTABIX.out.versions)
+        // TABIX_BGZIPTABIX(ch_SV_annotsv_vcf)
+        TABIX_SV_VCF(ch_SV_annotsv_vcf)
+        ch_versions       = ch_versions.mix(TABIX_SV_VCF.out.versions)
          
-        ch_SV_annotsv_vcf_tbi =TABIX_BGZIPTABIX.out.gz_tbi
+        ch_SV_annotsv_vcf_tbi =TABIX_SV_VCF.out.gz_tbi
                                 .map { meta, vcf, tbi ->
                                   [meta, vcf, tbi, []] // [meta, sv_vcf, sv_vcf_tbi, candidate_small_variants]
                                 }
-        ch_SV_annotsv_vcf_tbi.view()        
+        // ch_SV_annotsv_vcf_tbi.view()        
         
         ANNOTSV_ANNOTSV(ch_SV_annotsv_vcf_tbi, ch_SV_annotsv_cache, [[:],[]], [[:],[]], [[:],[]])
         ch_versions       = ch_versions.mix(ANNOTSV_ANNOTSV.out.versions)
@@ -545,15 +579,21 @@ workflow PACSOMATIC {
                               [chord_meta, snv_vcf, sv_vcf]
                               }
 
-        ch_chord_snv_sv_vcfs.view()
+        // ch_chord_snv_sv_vcfs.view()
 
         chord_genome_fasta  = ch_genome_fasta.map {meta, genome_fasta -> [genome_fasta] }
         chord_genome_fai    = ch_genome_fai.map { meta, genome_fai -> [genome_fai] }
+        
+        SAMTOOLS_DICT(ch_genome_fasta)
+        ch_versions        = ch_versions.mix(SAMTOOLS_DICT.out.versions)
+        
+        chord_genome_dict =SAMTOOLS_DICT.out.dict
+                           .map {meta, genome_dict -> [genome_dict] }
 
-        chord_genome_fasta.view()
-        chord_genome_fai.view()
+       // chord_genome_fasta.view()
+       // chord_genome_fai.view()
 
-        CHORD(ch_chord_snv_sv_vcfs, chord_genome_fasta, chord_genome_fai, [])
+        CHORD(ch_chord_snv_sv_vcfs, chord_genome_fasta, chord_genome_fai, chord_genome_dict)
 
         ch_versions        = ch_versions.mix(CHORD.out.versions)
    }

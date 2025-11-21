@@ -51,13 +51,17 @@ cat("  smoothing_span:", smoothing_span, "\\n\\n")
 if (grepl("\\\\.gz\$", tumor_file)) {
     tumor_tmp <- tempfile(pattern = "tumor_", fileext = ".bed")
     system2("gunzip", args = c("-c", tumor_file), stdout = tumor_tmp)
-    tumor_file <- tumor_tmp
+    tumor_tmp1 <- tempfile(pattern = "tumor1_", fileext = ".bed")
+    system2("grep", args = c("-v '^#'", tumor_tmp), stdout = tumor_tmp1)
+    tumor_file <- tumor_tmp1
 }
 
 if (grepl("\\\\.gz\$", normal_file)) {
     normal_tmp <- tempfile(pattern = "normal_", fileext = ".bed")
     system2("gunzip", args = c("-c", normal_file), stdout = normal_tmp)
-    normal_file <- normal_tmp
+    normal_tmp1 <- tempfile(pattern = "normal1_", fileext = ".bed")
+    system2("grep", args = c("-v '^#'", normal_tmp), stdout = normal_tmp1)
+    normal_file <- normal_tmp1
 }
 
 # Extract required columns (chr, pos, N, X) if file has more columns

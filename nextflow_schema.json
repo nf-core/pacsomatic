@@ -131,7 +131,12 @@
                 },
                "skip_dmr": {
                     "type": "boolean",
-                    "description": "Option to skip dmr for differential methyaltion region detection and annotation",
+                    "description": "Option to skip dmr for differential methyaltion region detection",
+                    "fa_icon": "fas fa-forward"
+                },
+               "skip_dmr_anno": {
+                    "type": "boolean",
+                    "description": "Option to skip dmr annotation",
                     "fa_icon": "fas fa-forward"
                 },
                 "skip_somatic_hiphase": {
@@ -205,6 +210,20 @@
                     "description": "Directory containing Clair3 model files.",
                     "fa_icon": "fas fa-users-cog"
                 },
+                 "pbcpgtools_minmapq": {
+                    "type": "number",
+                    "default": 1,
+                    "fa_icon": "fas fa-wrench",
+                    "description": "minmapq value for pbcpgtools",
+                    "help_text": "Details, see [pb-cp-gtools manual](https://github.com/PacificBiosciences/pb-CpG-tools).",
+                },  
+                "pbcpgtools_mincov": {
+                    "type": "number",
+                    "default": 4,
+                    "fa_icon": "fas fa-wrench",
+                    "description": "min-coverage value for pbcpgtools",
+                    "help_text": "Details, see [pb-cp-gtools manual](https://github.com/PacificBiosciences/pb-CpG-tools).",
+                }, 
                 "vep_assembly": {
                     "type": "string",
                     "description": "assembly name for vep annotation, e.g GRCh38.",
