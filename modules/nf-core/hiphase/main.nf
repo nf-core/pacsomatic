@@ -15,6 +15,8 @@ process HIPHASE {
     output:
     tuple val(meta), path("*.vcf"), emit: vcf
     tuple val(meta), path("*.csv"), emit: csv
+    tuple val(meta), path("*.phased.bam"), emit: bam
+    tuple val(meta), path("*.phased.bam.bai"), emit: bai
     path "versions.yml"           , emit: versions
 
     when:
