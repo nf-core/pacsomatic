@@ -104,11 +104,56 @@
                     "fa_icon": "fas fa-forward",
                     "description": "Skip Bamcoverage."
                 },
-                "skip_multiqc": {
+                "skip_deepsomatic": {
+                    "type": "boolean",
+                    "description": "Option to skip deepsomatic SNV_INDEL caller",
+                    "fa_icon": "fas fa-forward"
+                },
+                "skip_hiphase": {
+                    "type": "boolean",
+                    "description": "Option to skip germline hiphase for all samples",
+                    "fa_icon": "fas fa-forward"
+                },
+                "skip_pbcpgtools": {
+                    "type": "boolean",
+                    "description": "Option to skip pb_cpg_tools",
+                    "fa_icon": "fas fa-forward"
+                },
+                "skip_somatic_hiphase": {
+                    "type": "boolean",
+                    "description": "Option to skip somatic hiphase",
+                    "fa_icon": "fas fa-forward"
+                },
+                "skip_mutationalpattern": {
+                    "type": "boolean",
+                    "description": "Option to skip mutationalpattern",
+                    "fa_icon": "fas fa-forward"
+                },
+                "skip_tumor_clonality": {
+                    "type": "boolean",
+                    "description": "Option to skip tumor_clonality",
+                    "fa_icon": "fas fa-forward"
+                },
+                "skip_severus": {
+                    "type": "boolean",
+                    "description": "Option to skip severus_SV caller",
+                    "fa_icon": "fas fa-forward"
+               },
+               "skip_cnvkit": {
+                    "type": "boolean",
+                    "description": "Option to skip CNVKit caller",
+                    "fa_icon": "fas fa-forward"
+               },
+               "skip_chord": {
+                    "type": "boolean",
+                    "description": "Option to skip HRD(Homologous Recombination Deficiency) estimation from the called SNV and SV variants",
+                    "fa_icon": "fas fa-forward"
+               },
+               "skip_multiqc": {
                     "type": "boolean",
                     "fa_icon": "fas fa-forward",
                     "description": "Skip MultiQC."
-                }
+              }
             },
             "fa_icon": "fas fa-forward"
         },
@@ -129,6 +174,13 @@
                     "format": "directory-path",
                     "description": "Directory containing Clair3 model files.",
                     "fa_icon": "fas fa-users-cog"
+                },
+                "mutationalpattern_max_delta": {
+                    "type": "number",
+                    "default": 0.04,
+                    "fa_icon": "fas fa-wrench",
+                    "description": "mutationalpattern max_delta",
+                    "help_text": "Details, see [Mutational pattern manual](https://bioconductor.org/packages/release/bioc/html/MutationalPatterns.html).",
                 }
             }
         },
@@ -178,6 +230,24 @@
                     "hidden": true,
                     "fa_icon": "fas fa-users-cog"
                 }
+            }
+        },
+        "bam_qc": {
+           "title": "Alignment BAM QC evaluation",
+            "type": "object",
+            "description": "Options for alignment qc",
+            "help_text": "These options allow customization of alignment BAM qc evaluation",
+            "properties": {
+                "skip_mosdepth": {
+                    "type": "boolean",
+                    "description": "Option to skip mosdepth for alignment QC",
+                    "fa_icon": "fas fa-forward"
+                },
+                "skip_bamcoverage": {
+                    "type": "boolean",
+                    "description": "Option to skip bamcoverage for alignment QC",
+                    "fa_icon": "fas fa-forward"
+                },
             }
         },
         "generic_options": {
