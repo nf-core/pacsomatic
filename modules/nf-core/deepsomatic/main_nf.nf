@@ -29,8 +29,7 @@ process DEEPSOMATIC {
     prefix = task.ext.prefix ?: "${meta.id}"
     def regions = intervals ? "--regions=${intervals}" : ""
     def VERSION = '1.7.0'
-    def sample_normal="${meta.patient}_${meta.normal_id}" 
-    def sample_tumor="${meta.patient}_${meta.tumor_id}"
+
     """
     run_deepsomatic \\
         --ref=${fasta} \\
@@ -38,8 +37,8 @@ process DEEPSOMATIC {
         --reads_tumor=${input_tumor} \\
         --output_vcf=${prefix}.vcf.gz \\
         --output_gvcf=${prefix}.g.vcf.gz \\
-        --sample_name_tumor=${sample_tumor} \\
-        --sample_name_normal=${sample_normal} \\
+        --sample_name_tumor="tumor" \\
+        --sample_name_normal="normal" \\
         ${args} \\
         ${regions} \\
         --intermediate_results_dir=tmp \\
