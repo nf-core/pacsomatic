@@ -187,6 +187,11 @@
                         "git_sha": "c8be52dba1166c678e74cda9c3a3c221635c8bb1",
                         "installed_by": ["modules"]
                     },
+                    "samtools/dict": {
+                        "branch": "master",
+                        "git_sha": "c8be52dba1166c678e74cda9c3a3c221635c8bb1",
+                        "installed_by": ["modules"]
+                    },
                     "samtools/faidx": {
                         "branch": "master",
                         "git_sha": "c8be52dba1166c678e74cda9c3a3c221635c8bb1",
@@ -244,6 +249,11 @@
                         "installed_by": [
                             "modules"
                         ]
+                    },
+                    "tabix/bgziptabix": {
+                        "branch": "master",
+                        "git_sha": "f2cfcf9d3f6a2d123e6c44aefa788aa232204a7a",
+                        "installed_by": ["modules"]
                     },
                     "tabix/bgziptabix": {
                         "branch": "master",
