@@ -271,6 +271,32 @@ workflow PACSOMATIC {
                        ]
                        [ pair_meta, normal_vcf, normal_vcf_tbi, tumor_vcf, tumor_vcf_tbi ]
                     }
+    //
+    //  Germline HiPhase for normal channel
+    //
+    ch_hiphase_out_bam_bai= Channel.empty()
+    if (!params.skip_hiphase) {
+        ch_hiphase_vcf     =  ch_vcf_normals     //  ch_vcf_tbi //= CLAIR3.out.vcf.join(CLAIR3.out.tbi)
+                             .map { meta, vcf, tbi ->
+                             [meta.id, meta, vcf, tbi]
+                             }
+
+        ch_hiphase_bam_bai = ch_bam_normals     // ch_bam_bai
+                            .map { meta, bam, bai ->
+                             [meta.id, meta, bam, bai]
+                             }        
+        
+        ch_hiphase_combine = ch_hiphase_vcf.combine(ch_hiphase_bam_bai, by: [0])
+                             .multiMap { meta_id, meta, vcf, tbi, meta2, bam, bai ->     
+                               vcf_tbi: [meta, vcf, tbi]
+                               bam_bai: [meta2, bam, bai]
+                              }
+         
+        HIPHASE (ch_hiphase_combine.vcf_tbi, ch_hiphase_combine.bam_bai, ch_genome_fasta)
+        ch_hiphase_out_bam_bai= HIPHASE.out.bam.join(HIPHASE.out.bai)
+        ch_versions = ch_versions.mix(HIPHASE.out.versions.first())
+        
+    } 
     
     //
     //  TUMOR CLONALITY using hfmtools: amber, cobalt and purple   
