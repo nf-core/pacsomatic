@@ -216,35 +216,36 @@
                     "fa_icon": "fas fa-wrench",
                     "description": "minmapq value for pbcpgtools",
                     "help_text": "Details, see [pb-cp-gtools manual](https://github.com/PacificBiosciences/pb-CpG-tools).",
-                },  
+                },
                 "pbcpgtools_mincov": {
                     "type": "number",
                     "default": 4,
                     "fa_icon": "fas fa-wrench",
                     "description": "min-coverage value for pbcpgtools",
                     "help_text": "Details, see [pb-cp-gtools manual](https://github.com/PacificBiosciences/pb-CpG-tools).",
-                }, 
+                },
                 "vep_assembly": {
                     "type": "string",
                     "description": "assembly name for vep annotation, e.g GRCh38.",
                     "fa_icon": "fas fa-users-cog"
-                }, 
+                },
                 "vep_species": {
                     "type": "string",
                     "description": "species name for vep annotation, e.g homo_sapiens,or mouse.",
                     "fa_icon": "fas fa-users-cog"
                 },
                 "vep_cache_version": {
-                    "type": "string",
-                    "description": " The Ensembl VEP version",
-                    "fa_icon": "fas fa-users-cog"
-                },                
+                    "type": "integer",
+                    "default": 112,
+                    "description": "Specify the version of the VEP cache provided to the `--vep_cache` option.",
+                    "fa_icon": "fas fa-align-center"
+                },
                 "vep_cache": {
                     "type": "string",
                     "format": "directory-path",
                     "description": "Directory for Ensembl VEP Cache.",
                     "fa_icon": "fas fa-users-cog"
-                },                
+                },
                 "mutationalpattern_max_delta": {
                     "type": "number",
                     "default": 0.04,
