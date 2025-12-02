@@ -56,19 +56,19 @@ workflow GERMLINE_CALLING_PHASING {
     if (!skip_hiphase) {
         // Filter for normal samples only (status == 0)
         ch_hiphase_vcf = ch_vcf_tbi
-            .filter { meta, vcf, tbi -> meta.status == 0 }
+            .filter { meta, _vcf, _tbi -> meta.status == 0 }
             .map { meta, vcf, tbi ->
                 [meta.id, meta, vcf, tbi]
             }
 
         ch_hiphase_bam_bai = ch_bam_bai
-            .filter { meta, bam, bai -> meta.status == 0 }
+            .filter { meta, _bam, _bai -> meta.status == 0 }
             .map { meta, bam, bai ->
                 [meta.id, meta, bam, bai]
             }
 
         // Combine VCF and BAM by sample ID
-        ch_hiphase_combine = ch_hiphase_vcf
+        ch_hiphase_prep = ch_hiphase_vcf
             .combine(ch_hiphase_bam_bai, by: [0])
             .multiMap { meta_id, meta, vcf, tbi, meta2, bam, bai ->
                 vcf_tbi: [meta, vcf, tbi]
@@ -76,19 +76,19 @@ workflow GERMLINE_CALLING_PHASING {
             }
 
         HIPHASE (
-            ch_hiphase_combine.vcf_tbi,
-            ch_hiphase_combine.bam_bai,
+            ch_hiphase_prep.vcf_tbi,
+            ch_hiphase_prep.bam_bai,
             ch_genome_fasta
         )
 
         ch_phased_bam_bai = HIPHASE.out.bam.join(HIPHASE.out.bai)
-        // ch_phased_vcf_tbi = HIPHASE.out.vcf.join(HIPHASE.out.tbi)
+        ch_phased_vcf_tbi = HIPHASE.out.vcf.join(HIPHASE.out.tbi)
         ch_versions = ch_versions.mix(HIPHASE.out.versions.first())
     }
 
     emit:
     vcf         = ch_vcf_tbi                // channel: [ meta, vcf, tbi ]
     phased_bam  = ch_phased_bam_bai         // channel: [ meta, bam, bai ] - phased normal samples
-    // phased_vcf  = ch_phased_vcf_tbi         // channel: [ meta, vcf, tbi ] - phased VCFs
+    phased_vcf  = ch_phased_vcf_tbi         // channel: [ meta, vcf, tbi ] - phased VCFs
     versions    = ch_versions               // channel: [ versions.yml ]
 }
