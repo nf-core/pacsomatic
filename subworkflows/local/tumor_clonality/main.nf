@@ -43,13 +43,13 @@ workflow TUMOR_CLONALITY {
         }
 
     // Prepare optional parameters
-    ch_target_regions_bed = params.target_regions_bed ?
-        file(params.target_regions_bed, checkIfExists: true) : []
+    ch_target_regions_bed = params.target_regions_bed ? file(params.target_regions_bed, checkIfExists: true) : []
+    ch_heterozygous_sites = params.heterozygous_sites ? file(params.heterozygous_sites, checkIfExists: true) : []
 
     AMBER(
         ch_amber_input,
         'V38',
-        params.heterozygous_sites,
+        ch_heterozygous_sites,
         ch_target_regions_bed,
         []
     )
@@ -74,10 +74,11 @@ workflow TUMOR_CLONALITY {
         file(params.diploid_regions, checkIfExists: true) : []
     ch_target_region_normalisation = params.target_region_normalisation ?
         file(params.target_region_normalisation, checkIfExists: true) : []
+    ch_gc_profile = params.gc_profile ? file(params.gc_profile, checkIfExists: true) : []
 
     COBALT(
         ch_cobalt_input,
-        params.gc_profile,
+        ch_gc_profile,
         ch_diploid_regions,
         ch_target_region_normalisation,
         [:]
@@ -102,17 +103,22 @@ workflow TUMOR_CLONALITY {
             [meta, amber_dir, cobalt_dir, [], [], [], [], [], []]
         }
 
+    ch_known_hotspots_somatic = params.known_hotspots_somatic ? file(params.known_hotspots_somatic, checkIfExists: true) : []
+    ch_known_hotspots_gemrline = params.known_hotspots_germline ? file(params.known_hotspots_germline, checkIfExists: true) : []
+    ch_driver_gene_panel = params.driver_gene_panel ? file(params.driver_gene_panel, checkIfExists: true) : []
+    ch_ensembl_data_dir = params.ensembl_data_dir ? file(params.ensembl_data_dir, checkIfExists: true, dir: true) : []
+
     PURPLE(
         ch_purple_input,
         ch_genome_fasta,
         ch_genome_fai,
         [[:], []],
         '38',
-        params.gc_profile,
-        params.known_hotspots_somatic,
-        params.known_hotspots_germline,
-        params.driver_gene_panel,
-        params.ensembl_data_dir,
+        ch_gc_profile,
+        ch_known_hotspots_somatic,
+        ch_known_hotspots_gemrline,
+        ch_driver_gene_panel,
+        ch_ensembl_data_dir,
         []
     )
     ch_versions = ch_versions.mix(PURPLE.out.versions)
@@ -121,6 +127,6 @@ workflow TUMOR_CLONALITY {
     amber_dir   = AMBER.out.amber_dir       // channel: [ pair_meta, amber_dir ]
     cobalt_dir  = COBALT.out.cobalt_dir     // channel: [ pair_meta, cobalt_dir ]
     purple_dir  = PURPLE.out.purple_dir     // channel: [ pair_meta, purple_dir ]
-    purity_tsv  = PURPLE.out.purity_tsv     // channel: [ pair_meta, purity.tsv ]
+    // purity_tsv  = PURPLE.out.purity_tsv     // channel: [ pair_meta, purity.tsv ]
     versions    = ch_versions               // channel: [ versions.yml ]
 }
