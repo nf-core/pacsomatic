@@ -52,12 +52,12 @@ workflow PACSOMATIC {
     ch_multiqc_report = Channel.empty()
 
     // initialize file channels for subworkflows
-    ch_cnv_target_bed = params.cnv_target_bed        ? channel.of([[:], file(params.cnv_target_bed, checkIfExists: true)])
-                                                     : channel.value([[:], []])
-    ch_cnv_reference = params.cnv_reference ? channel.of([[:], file(params.ch_cnv_reference, checkIfExists: true)])
-                                                     : channel.value([[:], []])
-    ch_cnv_germline_vcf = params.cnv_germline_vcf    ? channel.of(file(params.cnvkit_vcf, checkIfExists: true))
-                                                     : channel.value([[]])
+    ch_cnv_target_bed = params.cnv_target_bed       ? channel.of([[:], file(params.cnv_target_bed, checkIfExists: true)])
+                                                    : channel.value([[:], []])
+    ch_cnv_reference = params.cnv_reference         ? channel.of([[:], file(params.ch_cnv_reference, checkIfExists: true)])
+                                                    : channel.value([[:], []])
+    ch_cnv_germline_vcf = params.cnv_germline_vcf   ? channel.of(file(params.cnvkit_vcf, checkIfExists: true))
+                                                    : channel.value([[]])
 
     //
     // Group BAMs by patient-sample and merge if multiple files exists
