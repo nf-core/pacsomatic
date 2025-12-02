@@ -253,7 +253,7 @@ workflow PACSOMATIC {
     //
     ch_somatic_sv_vcf = Channel.empty()
 
-    if (!params.skip_severus) {
+    if (!params.skip_sv) {
         SOMATIC_SV(
             ch_tn_bam_pairs,
             params.skip_svpack,
@@ -314,7 +314,7 @@ workflow PACSOMATIC {
     // SUBWORKFLOW: Mutational signature analysis (CHORD and MUTATIONALPATTERN)
     //
     if ((!params.skip_chord || !params.skip_mutationalpattern) &&
-        !params.skip_deepsomatic && !params.skip_severus) {
+        !params.skip_deepsomatic && !params.skip_sv) {
         SIGNATURE_ANALYSIS(
             ch_somatic_snv_vcf_gz,
             ch_somatic_sv_vcf,
