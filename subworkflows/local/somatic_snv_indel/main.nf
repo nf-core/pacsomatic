@@ -11,13 +11,13 @@ include { UNZIPFILES                } from '../../../modules/nf-core/unzipfiles/
 workflow SOMATIC_SNV_INDEL {
 
     take:
-    ch_tn_bam_pairs     // channel: [ pair_meta, normal_bam, normal_bai, tumor_bam, tumor_bai ]
-    ch_genome_fasta     // channel: [ meta, fasta ]
-    ch_genome_fai       // channel: [ meta, fai ]
-    ch_vcf_tumors       // channel: [ meta, vcf, tbi ] - germline VCFs for tumor samples
-    ch_bam_tumors       // channel: [ meta, bam, bai ] - tumor BAMs
-    skip_vep            // boolean: skip VEP annotation
-    skip_vep_download   // boolean: skip VEP cache download (use existing cache)
+    ch_tn_bam_pairs      // channel: [ pair_meta, normal_bam, normal_bai, tumor_bam, tumor_bai ]
+    ch_genome_fasta      // channel: [ meta, fasta ]
+    ch_genome_fai        // channel: [ meta, fai ]
+    ch_vcf_tumors        // channel: [ meta, vcf, tbi ] - germline VCFs for tumor samples
+    ch_bam_tumors        // channel: [ meta, bam, bai ] - tumor BAMs
+    skip_vep             // boolean: skip VEP annotation
+    skip_vep_download    // boolean: skip VEP cache download (use existing cache)
     skip_somatic_hiphase // boolean: skip somatic variant phasing
 
     main:
@@ -26,15 +26,15 @@ workflow SOMATIC_SNV_INDEL {
     //
     // DEEPSOMATIC: Somatic SNV/indel calling
     //
-    ch_deepsomatic_interval = channel.of( [[:], []] )
-    ch_deepsomatic_gzi      = channel.of( [[:], []] )
+    // ch_deepsomatic_interval = channel.of( [[:], []] )
+    // ch_deepsomatic_gzi      = channel.of( [[:], []] )
 
     DEEPSOMATIC(
         ch_tn_bam_pairs,
-        ch_deepsomatic_interval,
+        [[:], []],
         ch_genome_fasta,
         ch_genome_fai,
-        ch_deepsomatic_gzi
+        [[:], []]
     )
     ch_versions = ch_versions.mix(DEEPSOMATIC.out.versions)
 
@@ -118,8 +118,8 @@ workflow SOMATIC_SNV_INDEL {
             .combine(ch_somatic_hiphasing_bam_bai, by: 0)
             .combine(ch_somatic_hiphasing_vcf, by: 0)
             .multiMap { meta_id, meta, vcf, tbi, meta2, bam, bai, meta3, somatic_vcf, somatic_tbi ->
-                bam_bai:          [meta2, bam, bai]
                 vcf_tbi:          [meta, vcf, tbi]
+                bam_bai:          [meta2, bam, bai]
                 somatic_vcf_tbi:  [meta3, somatic_vcf, somatic_tbi]
             }
 
@@ -130,17 +130,19 @@ workflow SOMATIC_SNV_INDEL {
             ch_somatic_hiphasing_combine.somatic_vcf_tbi
         )
 
-        ch_somatic_phased_bam_bai = HIPHASE_SOMATIC.out.bam.join(HIPHASE_SOMATIC.out.bai)
-        // ch_somatic_phased_vcf     = HIPHASE_SOMATIC.out.vcf
-        ch_versions = ch_versions.mix(HIPHASE_SOMATIC.out.versions)
+        ch_germline_phased_bam_bai = HIPHASE_SOMATIC.out.bam.join(HIPHASE_SOMATIC.out.bai)
+        ch_germline_phased_vcf     = HIPHASE_SOMATIC.out.germline_vcf
+        ch_somatic_phased_vcf      = HIPHASE_SOMATIC.out.somatic_vcf
+        ch_versions = ch_versions.mix(HIPHASE_SOMATIC.out.versions.first())
     }
 
     emit:
-    vcf                = ch_somatic_vcf           // channel: [ pair_meta, vcf.gz ]
-    vcf_tbi            = ch_somatic_vcf_tbi       // channel: [ pair_meta, vcf.gz.tbi ]
-    vep_vcf            = ch_vep_vcf               // channel: [ pair_meta, annotated.vcf ]
-    vep_tab            = ch_vep_tab               // channel: [ pair_meta, vep.tab ]
-    phased_bam         = ch_somatic_phased_bam_bai // channel: [ meta, phased_bam, bai ]
-    // phased_vcf         = ch_somatic_phased_vcf    // channel: [ meta, phased_vcf ]
-    versions           = ch_versions              // channel: [ versions.yml ]
+    vcf                 = ch_somatic_vcf             // channel: [ pair_meta, vcf.gz ]
+    vcf_tbi             = ch_somatic_vcf_tbi         // channel: [ pair_meta, vcf.gz.tbi ]
+    vep_vcf             = ch_vep_vcf                 // channel: [ pair_meta, annotated.vcf ]
+    vep_tab             = ch_vep_tab                 // channel: [ pair_meta, vep.tab ]
+    phased_bam          = ch_germline_phased_bam_bai // channel: [ meta, phased_bam, bai ]
+    phased_germline_vcf = ch_germline_phased_vcf     // channel: [ meta, phased_germline_vcf ]
+    phased_somatic_vcf  = ch_somatic_phased_vcf      // channel: [ meta, phased_somatic_vcf ]
+    versions            = ch_versions                // channel: [ versions.yml ]
 }
