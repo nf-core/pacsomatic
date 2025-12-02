@@ -70,7 +70,7 @@ workflow METHYLATION_ANALYSIS {
             //
             if (!skip_dmr_anno) {
                 ANNOTATR_DMR(ch_dmr_tsv)
-                ch_dmr_annotated = ANNOTATR_DMR.out.annotated_dmr
+                ch_dmr_annotated = ANNOTATR_DMR.out.summary
                 ch_versions = ch_versions.mix(ANNOTATR_DMR.out.versions.first())
             }
         }

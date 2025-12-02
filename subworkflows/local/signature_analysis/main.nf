@@ -57,15 +57,15 @@ workflow SIGNATURE_ANALYSIS {
             }
 
         // Prepare genome files
-        chord_genome_fasta = ch_genome_fasta.map { meta, fasta -> [fasta] }
-        chord_genome_fai   = ch_genome_fai.map { meta, fai -> [fai] }
+        chord_genome_fasta = ch_genome_fasta.map { meta, fasta -> fasta }
+        chord_genome_fai   = ch_genome_fai.map { meta, fai -> fai }
 
         // Create genome dictionary
         SAMTOOLS_DICT(ch_genome_fasta)
         ch_versions = ch_versions.mix(SAMTOOLS_DICT.out.versions)
 
         chord_genome_dict = SAMTOOLS_DICT.out.dict
-            .map { meta, dict -> [dict] }
+            .map { meta, dict -> dict }
 
         CHORD(
             ch_chord_input,
@@ -73,7 +73,7 @@ workflow SIGNATURE_ANALYSIS {
             chord_genome_fai,
             chord_genome_dict
         )
-        ch_chord_prediction = CHORD.out.prediction
+        ch_chord_prediction = CHORD.out.chord_dir
         ch_versions = ch_versions.mix(CHORD.out.versions)
     }
 
