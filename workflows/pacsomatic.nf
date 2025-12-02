@@ -49,6 +49,15 @@ workflow PACSOMATIC {
     // init version and multiqc channels
     ch_versions = Channel.empty()
     ch_multiqc_files = Channel.empty()
+    ch_multiqc_report = Channel.empty()
+
+    // initialize file channels for subworkflows
+    ch_cnv_target_bed = params.cnv_target_bed        ? channel.of([[:], file(params.cnv_target_bed, checkIfExists: true)])
+                                                     : channel.value([[:], []])
+    ch_cnv_reference = params.cnv_reference ? channel.of([[:], file(params.ch_cnv_reference, checkIfExists: true)])
+                                                     : channel.value([[:], []])
+    ch_cnv_germline_vcf = params.cnv_germline_vcf    ? channel.of(file(params.cnvkit_vcf, checkIfExists: true))
+                                                     : channel.value([[]])
 
     //
     // Group BAMs by patient-sample and merge if multiple files exists
@@ -174,13 +183,8 @@ workflow PACSOMATIC {
     ch_bam_normals_tmp = ch_samples_by_patient.normal
     ch_bam_tumors_tmp  = ch_samples_by_patient.tumor
 
-    ch_bam_normals = ch_bam_normals_tmp
-        .map { patient, meta, bam, bai  ->
-            [ meta, bam, bai ]
-        }
-
     ch_bam_tumors = ch_bam_tumors_tmp
-        .map { patient, meta, bam, bai ->
+        .map { _patient, meta, bam, bai ->
             [ meta, bam, bai ]
         }
 
@@ -224,6 +228,9 @@ workflow PACSOMATIC {
     //
     // SUBWORKFLOW: Somatic SNV/indel calling, annotation, and phasing
     //
+    ch_somatic_snv_vcf_gz = Channel.empty()
+    ch_somatic_phased_bam = Channel.empty()
+
     if (!params.skip_deepsomatic) {
         SOMATIC_SNV_INDEL(
             ch_tn_bam_pairs,
@@ -239,14 +246,13 @@ workflow PACSOMATIC {
 
         ch_somatic_snv_vcf_gz  = SOMATIC_SNV_INDEL.out.vcf
         ch_somatic_phased_bam  = SOMATIC_SNV_INDEL.out.phased_bam
-    } else {
-        ch_somatic_snv_vcf_gz = Channel.empty()
-        ch_somatic_phased_bam = Channel.empty()
     }
 
     //
     // SUBWORKFLOW: Somatic structural variant calling and annotation
     //
+    ch_somatic_sv_vcf = Channel.empty()
+
     if (!params.skip_severus) {
         SOMATIC_SV(
             ch_tn_bam_pairs,
@@ -254,11 +260,9 @@ workflow PACSOMATIC {
             params.skip_annotsv,
             params.skip_annotsv_install
         )
-        ch_versions = ch_versions.mix(SOMATIC_SV.out.versions)
 
         ch_somatic_sv_vcf = SOMATIC_SV.out.vcf
-    } else {
-        ch_somatic_sv_vcf = Channel.empty()
+        ch_versions = ch_versions.mix(SOMATIC_SV.out.versions)
     }
 
     //
@@ -268,7 +272,10 @@ workflow PACSOMATIC {
         CNV_CALLING(
             ch_tn_bam_pairs,
             ch_genome_fasta,
-            ch_genome_fai
+            ch_genome_fai,
+            ch_cnv_target_bed,
+            ch_cnv_reference,
+            ch_cnv_germline_vcf,
         )
         ch_versions = ch_versions.mix(CNV_CALLING.out.versions)
     }
@@ -319,10 +326,10 @@ workflow PACSOMATIC {
         ch_versions = ch_versions.mix(SIGNATURE_ANALYSIS.out.versions)
     }
 
-   //
-   // Collate and save software versions
-   //
-   softwareVersionsToYAML(ch_versions)
+    //
+    // Collate and save software versions
+    //
+    softwareVersionsToYAML(ch_versions)
         .collectFile(
             storeDir: "${params.outdir}/pipeline_info",
             name: 'nf_core_'  +  'pacsomatic_software_'  + 'mqc_'  + 'versions.yml',
@@ -331,7 +338,7 @@ workflow PACSOMATIC {
         ).set { ch_collated_versions }
 
 
-   if ( !params.skip_qc && !params.skip_multiqc ) {
+    if ( !params.skip_qc && !params.skip_multiqc ) {
 
         //
         // MODULE: MultiQC
@@ -365,7 +372,6 @@ workflow PACSOMATIC {
         )
 
         // post-alignment qc files
-
         ch_multiqc_files = ch_multiqc_files.mix(ch_ordered_stats.collect{it[1]}.ifEmpty([]))
         ch_multiqc_files = ch_multiqc_files.mix(ch_ordered_flagstat.collect{it[1]}.ifEmpty([]))
         ch_multiqc_files = ch_multiqc_files.mix(ch_ordered_idxstats.collect{it[1]}.ifEmpty([]))
