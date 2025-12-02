@@ -93,12 +93,12 @@ workflow SIGNATURE_ANALYSIS {
             ch_mutationalpattern_genome,
             params.mutationalpattern_max_delta ?: 0.06
         )
-        ch_mutational_profile = MUTATIONALPATTERN.out.profile
+        ch_mutational_signature = MUTATIONALPATTERN.out.mut_sig
         ch_versions = ch_versions.mix(MUTATIONALPATTERN.out.versions)
     }
 
     emit:
     chord_prediction      = ch_chord_prediction     // channel: [ meta, prediction.txt ]
-    mutational_profile    = ch_mutational_profile   // channel: [ meta, profile ]
+    mutational_signature  = ch_mutational_profile   // channel: [ meta, signature ]
     versions              = ch_versions             // channel: [ versions.yml ]
 }
