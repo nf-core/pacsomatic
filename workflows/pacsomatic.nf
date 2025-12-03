@@ -320,6 +320,9 @@ workflow PACSOMATIC {
         SOMATIC_SV(
             ch_tn_bam_pairs,
             ch_severus_trf_bed,
+            ch_svpack_ctrl_vcf,
+            ch_svpack_ref_gff,
+            ch_annotsv_cache,
             params.skip_svpack,
             params.skip_annotsv,
             params.skip_annotsv_install
