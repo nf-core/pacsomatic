@@ -82,7 +82,7 @@ workflow PACSOMATIC {
 
     ch_cnv_germline_vcf = params.cnv_germline_vcf
         ? Channel.value(file(params.cnv_germline_vcf, checkIfExists: true))
-        : Channel.value([])
+        : Channel.value([[]])
 
     // Tumor clonality channels
     ch_target_regions_bed = params.target_regions_bed
@@ -354,7 +354,16 @@ workflow PACSOMATIC {
         TUMOR_CLONALITY(
             ch_tn_bam_pairs,
             ch_genome_fasta,
-            ch_genome_fai
+            ch_genome_fai,
+            ch_heterozygous_sites,
+            ch_target_regions_bed,
+            ch_gc_profile,
+            ch_diploid_regions,
+            ch_target_region_normalisation,
+            ch_known_hotspots_somatic,
+            ch_known_hotspots_germline,
+            ch_driver_gene_panel,
+            ch_ensembl_data_dir
         )
         ch_versions = ch_versions.mix(TUMOR_CLONALITY.out.versions)
     }
