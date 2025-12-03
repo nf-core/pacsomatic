@@ -12,6 +12,10 @@ workflow SOMATIC_SV {
 
     take:
     ch_tn_bam_pairs        // channel: [ pair_meta, normal_bam, normal_bai, tumor_bam, tumor_bai ]
+    ch_severus_trf_bed     // channel: [ meta, bed ]
+    ch_svpack_ctrl_vcf     // channel: [ meta, vcf(.gz) ]
+    ch_svpack_ref_gff      // channel: [ meta, gff(.gz) ]
+    ch_annotsv_cache       // channel: [ meta, annotsv_cache ]
     skip_svpack            // boolean: skip SVPACK filtering
     skip_annotsv           // boolean: skip ANNOTSV annotation
     skip_annotsv_install   // boolean: skip ANNOTSV cache installation (use existing cache)
@@ -22,17 +26,12 @@ workflow SOMATIC_SV {
     //
     // SEVERUS: Somatic SV calling
     //
-    ch_severus_phasing_vcf = channel.of([[]])
-    ch_severus_trf_bed     = params.severus_trf_bed ?
-        channel.of([[:], file(params.severus_trf_bed, checkIfExists: true)]) :
-        channel.of([[:], []])
 
     // Reorder BAMs: [meta, tumor_bam, tumor_bai, normal_bam, normal_bai]
     ch_severus_input = ch_tn_bam_pairs
         .map { pair_meta, normal_bam, normal_bam_bai, tumor_bam, tumor_bam_bai ->
-            [pair_meta, tumor_bam, tumor_bam_bai, normal_bam, normal_bam_bai]
+            [pair_meta, tumor_bam, tumor_bam_bai, normal_bam, normal_bam_bai, []]
         }
-        .combine(ch_severus_phasing_vcf)
 
     SEVERUS(ch_severus_input, ch_severus_trf_bed)
     ch_versions = ch_versions.mix(SEVERUS.out.versions)
@@ -47,14 +46,7 @@ workflow SOMATIC_SV {
         if (!params.svpack_control_vcf || !params.svpack_ref_gff) {
             log.warn "SVPACK filtering requires svpack_control_vcf and svpack_ref_gff parameters. Skipping SVPACK."
         } else {
-            ch_svpack_control_vcf = channel.of(
-                [[:], file(params.svpack_control_vcf, checkIfExists: true)]
-            )
-            ch_svpack_ref_gff = channel.of(
-                [[:], file(params.svpack_ref_gff, checkIfExists: true)]
-            )
-
-            SVPACK_ANNOTATE(ch_sv_vcf, ch_svpack_control_vcf, ch_svpack_ref_gff)
+            SVPACK_ANNOTATE(ch_sv_vcf, ch_svpack_ctrl_vcf, ch_svpack_ref_gff)
             ch_sv_vcf = SVPACK_ANNOTATE.out.tagged_vcf
             ch_versions = ch_versions.mix(SVPACK_ANNOTATE.out.versions)
         }
@@ -70,10 +62,6 @@ workflow SOMATIC_SV {
         if (!params.annotsv_cache && skip_annotsv_install) {
             log.warn "ANNOTSV annotation requires annotsv_cache parameter or skip_annotsv_install=false. Skipping ANNOTSV."
         } else {
-            ch_annotsv_cache = params.annotsv_cache ?
-                channel.of([[:], file(params.annotsv_cache, checkIfExists: true)]) :
-                Channel.empty()
-
             // Install ANNOTSV annotations if needed
             if (!skip_annotsv_install) {
                 ANNOTSV_INSTALLANNOTATIONS()
