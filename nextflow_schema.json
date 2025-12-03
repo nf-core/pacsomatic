@@ -176,7 +176,7 @@
                     "type": "string",
                     "format": "file-path",
                     "mimetype": "text/plain",
-                    "pattern": "^\\S+\\.gff(\\.gz)?$",
+                    "pattern": "^\\S+\\.gff3?(\\.gz)?$",
                     "description": "Reference GFF file for SVPACK annotation",
                     "help_text": "Path to a GFF/GFF3 file containing gene annotations. SVPACK uses this file to annotate structural variants with overlapping genes, transcripts, and other genomic features.",
                     "fa_icon": "fas fa-dna"
