@@ -43,7 +43,7 @@ workflow SOMATIC_SV {
     //
     if (!skip_svpack) {
         // Validate SVPACK parameters
-        if (!params.svpack_control_vcf || !params.svpack_ref_gff) {
+        if (!params.svpack_ctrl_vcf || !params.svpack_ref_gff) {
             log.warn "SVPACK filtering requires svpack_control_vcf and svpack_ref_gff parameters. Skipping SVPACK."
         } else {
             SVPACK_ANNOTATE(ch_sv_vcf, ch_svpack_ctrl_vcf, ch_svpack_ref_gff)
