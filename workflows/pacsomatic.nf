@@ -51,13 +51,76 @@ workflow PACSOMATIC {
     ch_multiqc_files = Channel.empty()
     ch_multiqc_report = Channel.empty()
 
+    //
     // initialize file channels for subworkflows
-    ch_cnv_target_bed = params.cnv_target_bed       ? channel.of([[:], file(params.cnv_target_bed, checkIfExists: true)])
-                                                    : channel.value([[:], []])
-    ch_cnv_reference = params.cnv_reference         ? channel.of([[:], file(params.ch_cnv_reference, checkIfExists: true)])
-                                                    : channel.value([[:], []])
-    ch_cnv_germline_vcf = params.cnv_germline_vcf   ? channel.of(file(params.cnvkit_vcf, checkIfExists: true))
-                                                    : channel.value([[]])
+    //
+    // SV-related channels
+    ch_severus_trf_bed = params.severus_trf_bed
+        ? Channel.value([[:], file(params.severus_trf_bed, checkIfExists: true)])
+        : Channel.value([[:], []])
+
+    ch_svpack_ctrl_vcf = params.svpack_ctrl_vcf
+        ? Channel.value([[:], file(params.svpack_ctrl_vcf, checkIfExists: true)])
+        : Channel.value([[:], []])
+
+    ch_svpack_ref_gff = params.svpack_ref_gff
+        ? Channel.value([[:], file(params.svpack_ref_gff, checkIfExists: true)])
+        : Channel.value([[:], []])
+
+    ch_annotsv_cache = params.annotsv_cache
+        ? channel.value([[:], file(params.annotsv_cache, checkIfExists: true)])
+        : Channel.empty()
+
+    // CNV channels
+    ch_cnv_target_bed = params.cnv_target_bed
+        ? Channel.value([[:], file(params.cnv_target_bed, checkIfExists: true)])
+        : Channel.value([[:], []])
+
+    ch_cnv_reference = params.cnv_reference
+        ? Channel.value([[:], file(params.cnv_reference, checkIfExists: true)])
+        : Channel.value([[:], []])
+
+    ch_cnv_germline_vcf = params.cnv_germline_vcf
+        ? Channel.value(file(params.cnv_germline_vcf, checkIfExists: true))
+        : Channel.value([])
+
+    // Tumor clonality channels
+    ch_target_regions_bed = params.target_regions_bed
+        ? Channel.value(file(params.target_regions_bed, checkIfExists: true))
+        : Channel.value([])
+
+    ch_heterozygous_sites = params.heterozygous_sites
+        ? Channel.value(file(params.heterozygous_sites, checkIfExists: true))
+        : Channel.value([])
+
+    ch_diploid_regions = params.diploid_regions
+        ? Channel.value(file(params.diploid_regions, checkIfExists: true))
+        : Channel.value([])
+
+    ch_target_region_normalisation = params.target_region_normalisation
+        ? Channel.value(file(params.target_region_normalisation, checkIfExists: true))
+        : Channel.value([])
+
+    ch_gc_profile = params.gc_profile
+        ? Channel.value(file(params.gc_profile, checkIfExists: true))
+        : Channel.value([])
+
+    // Variant calling channels
+    ch_known_hotspots_somatic = params.known_hotspots_somatic
+        ? Channel.value(file(params.known_hotspots_somatic, checkIfExists: true))
+        : Channel.value([])
+
+    ch_known_hotspots_germline = params.known_hotspots_germline
+        ? Channel.value(file(params.known_hotspots_germline, checkIfExists: true))
+        : Channel.value([])
+
+    ch_driver_gene_panel = params.driver_gene_panel
+        ? Channel.value(file(params.driver_gene_panel, checkIfExists: true))
+        : Channel.value([])
+
+    ch_ensembl_data_dir = params.ensembl_data_dir
+        ? Channel.value(file(params.ensembl_data_dir, checkIfExists: true, type: 'dir'))
+        : Channel.value([])
 
     //
     // Group BAMs by patient-sample and merge if multiple files exists
@@ -256,6 +319,7 @@ workflow PACSOMATIC {
     if (!params.skip_sv) {
         SOMATIC_SV(
             ch_tn_bam_pairs,
+            ch_severus_trf_bed,
             params.skip_svpack,
             params.skip_annotsv,
             params.skip_annotsv_install
