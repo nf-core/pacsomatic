@@ -9,9 +9,18 @@ include { PURPLE } from '../../../modules/local/purple/main'
 workflow TUMOR_CLONALITY {
 
     take:
-    ch_tn_bam_pairs     // channel: [ pair_meta, normal_bam, normal_bai, tumor_bam, tumor_bai ]
-    ch_genome_fasta     // channel: [ meta, fasta ]
-    ch_genome_fai       // channel: [ meta, fai ]
+    ch_tn_bam_pairs                // channel: [ pair_meta, normal_bam, normal_bai, tumor_bam, tumor_bai ]
+    ch_genome_fasta                // channel: [ meta, fasta ]
+    ch_genome_fai                  // channel: [ meta, fai ]
+    ch_heterozygous_sites          // channel: [ vcf(.gz) ]
+    ch_target_regions_bed          // channel: [ bed ]
+    ch_gc_profile                  // channel: [ cnp ]
+    ch_diploid_regions             // channel: [ bed(.gz) ]
+    ch_target_region_normalisation // channel: [ tsv ]
+    ch_known_hotspots_somatic      // channel: [ vcf(.gz) ]
+    ch_known_hotspots_gemrline     // channel: [ vcf(.gz) ]
+    ch_driver_gene_panel           // channel: [ tsv ]
+    ch_ensembl_data_dir            // channel: [ dir ]
 
     main:
     ch_versions = Channel.empty()
@@ -43,8 +52,6 @@ workflow TUMOR_CLONALITY {
         }
 
     // Prepare optional parameters
-    ch_target_regions_bed = params.target_regions_bed ? file(params.target_regions_bed, checkIfExists: true) : []
-    ch_heterozygous_sites = params.heterozygous_sites ? file(params.heterozygous_sites, checkIfExists: true) : []
 
     AMBER(
         ch_amber_input,
@@ -70,11 +77,6 @@ workflow TUMOR_CLONALITY {
         }
 
     // Prepare optional parameters
-    ch_diploid_regions = params.diploid_regions ?
-        file(params.diploid_regions, checkIfExists: true) : []
-    ch_target_region_normalisation = params.target_region_normalisation ?
-        file(params.target_region_normalisation, checkIfExists: true) : []
-    ch_gc_profile = params.gc_profile ? file(params.gc_profile, checkIfExists: true) : []
 
     COBALT(
         ch_cobalt_input,
@@ -103,10 +105,6 @@ workflow TUMOR_CLONALITY {
             [meta, amber_dir, cobalt_dir, [], [], [], [], [], []]
         }
 
-    ch_known_hotspots_somatic = params.known_hotspots_somatic ? file(params.known_hotspots_somatic, checkIfExists: true) : []
-    ch_known_hotspots_gemrline = params.known_hotspots_germline ? file(params.known_hotspots_germline, checkIfExists: true) : []
-    ch_driver_gene_panel = params.driver_gene_panel ? file(params.driver_gene_panel, checkIfExists: true) : []
-    ch_ensembl_data_dir = params.ensembl_data_dir ? file(params.ensembl_data_dir, checkIfExists: true, dir: true) : []
 
     PURPLE(
         ch_purple_input,
