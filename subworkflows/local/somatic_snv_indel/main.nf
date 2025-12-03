@@ -2,11 +2,11 @@
 // Somatic SNV/indel calling with DEEPSOMATIC, annotation with VEP, and optional somatic phasing
 //
 
-include { DEEPSOMATIC               } from '../../../modules/nf-core/deepsomatic/main'
-include { ENSEMBLVEP_DOWNLOAD       } from '../../../modules/nf-core/ensemblvep/download/main'
-include { ENSEMBLVEP_VEP            } from '../../../modules/nf-core/ensemblvep/vep/main'
-include { HIPHASE_SOMATIC           } from '../../../modules/local/hiphase_somatic/main'
-include { UNZIPFILES                } from '../../../modules/nf-core/unzipfiles/main'
+include { DEEPSOMATIC         } from '../../../modules/nf-core/deepsomatic/main'
+include { ENSEMBLVEP_DOWNLOAD } from '../../../modules/nf-core/ensemblvep/download/main'
+include { ENSEMBLVEP_VEP      } from '../../../modules/nf-core/ensemblvep/vep/main'
+include { HIPHASE_SOMATIC     } from '../../../modules/local/hiphase_somatic/main'
+include { UNZIPFILES          } from '../../../modules/nf-core/unzipfiles/main'
 
 workflow SOMATIC_SNV_INDEL {
 
@@ -26,9 +26,6 @@ workflow SOMATIC_SNV_INDEL {
     //
     // DEEPSOMATIC: Somatic SNV/indel calling
     //
-    // ch_deepsomatic_interval = channel.of( [[:], []] )
-    // ch_deepsomatic_gzi      = channel.of( [[:], []] )
-
     DEEPSOMATIC(
         ch_tn_bam_pairs,
         [[:], []],
@@ -56,7 +53,7 @@ workflow SOMATIC_SNV_INDEL {
 
             // Download VEP cache if needed
             if (!skip_vep_download && !params.vep_cache) {
-                ch_vep_download = Channel.of(
+                ch_vep_download = Channel.value(
                     [[:], params.vep_assembly, params.vep_species, params.vep_cache_version]
                 )
 
