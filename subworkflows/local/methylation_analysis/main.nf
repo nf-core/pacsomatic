@@ -58,7 +58,13 @@ workflow METHYLATION_ANALYSIS {
             ch_tn_pair_dmr = ch_tumor_cpg_bed
                 .combine(ch_normal_cpg_bed, by: [0])
                 .map { patient, tumor_meta, tumor_bed, normal_meta, normal_bed ->
-                    [tumor_meta, tumor_bed, normal_bed]
+                    def pair_meta = [
+                        patient: patient,
+                        tumor_id:  tumor_meta.sample,
+                        normal_id: normal_meta.sample,
+                        id: "${patient}_${tumor_meta.sample}_vs_${normal_meta.sample}"
+                    ]
+                    [pair_meta, tumor_bed, normal_bed]
                 }
 
             DSS_DMR(ch_tn_pair_dmr)
