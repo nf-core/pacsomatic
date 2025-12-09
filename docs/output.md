@@ -20,7 +20,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 - [Methylation Detection and Annotation] (#methylation-detection-and-annotation) Calculate CpG methylation for each alignment and detect and annotate the Differential Methylation Regions for tumor-normal pair
    - [CLAIR3](#clair3) - Germline SNV-INDEL  variant calling for all samples 
    - [HIPHASE](#hiphase) - Phase VCF and BAM files for normal samples
-   - [HIPHASE_SOMATIC](#hiphase-somatic) - Phase VCF and BAM files for tumor samples
+   - [HIPHASE_SOMATIC](#somatic-hiphase) - Phase VCF and BAM files for tumor samples
    - [PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES](#pbcpgtools-alignedbamtocpgscores) - Generate site methylation probabilities from mapped and phased BAM file
    - [DSS_DMR](#dss-dmr) - Use DSS(Dispersion Shrinkage for Sequencing) to detect DMR(Differential Methylation Region)    
    - [DMR_ANNOT](#dmr-annot) -Annotate the detected DMRs
@@ -62,8 +62,10 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 ## PBMM2
 <details markdown="1">
 <summary>Output files</summary>
+
 - `alignment_qc/pbmm2`
   - `<basename>.aligned.bam`: Aligned BAM
+
 </details>
 [PBMM2](https://github.com/PacificBiosciences/pbmm2) Aligned BAM files
 
@@ -120,13 +122,13 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 </details>
 [HIPHASE](https://github.com/PacificBiosciences/HiPhase) Phasing the germline/normal alignment
 
-### HIPHASE_SOMATIC
+### SOMATIC_HIPHASE
 <details markdown="1">
 <summary>Output files</summary>
 - `methylation_cpg/hiphase_somatic`
-  - `<basename>.phased.bam`: hiphase result file .phased.bam
-  - `<basename>.phased.bam.bai`: hiphase result file .phased.bam.bai          
-  - `<basename>.germline_phased.vcf`: hiphase result file .germline_phased.vcf
+  - `<basename>.phased.bam`: hiphase_somatic result file .phased.bam
+  - `<basename>.phased.bam.bai`: hiphase_somatic result file .phased.bam.bai          
+  - `<basename>.germline_phased.vcf`: hiphas_somatice result file .germline_phased.vcf
   - `<basename>.somatic_phased.vcf`: hiphase_somatic result file .somatic_phased.vcf
   - `<basename>.stats.csv`: hiphase result file .stats.csv     
 </details>

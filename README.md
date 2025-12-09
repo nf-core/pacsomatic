@@ -27,7 +27,7 @@ This pipeline utilizes the Nextflow DSL2 framework, featuring modularized proces
 The schematic overview of the nf-core/pacsomatic workflow is shown below:
  
 <p align="center">
-    <img src="https://raw.githubusercontent.com/stjudecab/pacsomatic/main/docs/images/Pacsomatic_workflow_beta.png" alt="pacsomatic_workflow" />
+    <img src="https://github.com/stjudecab/pacsomatic/blob/dev_wen/docs/images/Pacsomatic_workflow_beta.png" alt="pacsomatic_workflow" />
 </p>
 
 ## Pipeline Overview
@@ -39,7 +39,7 @@ Briefly, the `pacsomaric` pipeline performs the following major steps:
 5.  Pacbio variant phasing ([`HiPhase`](https://github.com/PacificBiosciences/HiPhase))
 6.  Pacbio CpG methylation Call ([`pb_CpG_tools`](https://github.com/PacificBiosciences/pb-CpG-tools))
 7.  Paired tumor_normal Differential Methylation Region detection ([`DSS_DMR`](https://forge.irstea.fr/chloe.cerutti/bsseqmethdiffanalysis/-/blob/main/DSS/DMR.R))
-8.  Annotation of detected DMR ([`DMR_ANNOTA`]())
+8.  Annotation of detected DMR ([`DMR_ANNOTA`](https://bioconductor.org/packages/release/bioc/html/annotatr.html))
 9.  Pacbio Somatic SNV_INDEL calling ([`deepsomatic`](https://github.com/google/deepsomatic))
 10. Pacbio Somatic SNV mutation signature ([`mutational_pattern`](https://github.com/UMCUGenetics/MutationalPatterns))
 11. Pacbio Somatic SNV annotation ([`vep`](https://github.com/Ensembl/ensembl-vep))
@@ -70,7 +70,7 @@ ID1,S1_normal,0,ID1_S1tumor.bam,ID1_S1_normal.bam.pbi
 Note that the `.pbi` file is not required. If you choose not to include it, your input file might look like this:
 
 ```csv
-patient,sample,status,bam,pbi
+patient,sample,status,bam
 ID1,S1_tumor,1,ID1_S1_tumor.bam
 ID1,S1_normal,0,ID1_S1tumor.bam
 ```
