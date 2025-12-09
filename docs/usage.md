@@ -19,7 +19,7 @@ You will need to create a samplesheet with information about the samples you wou
 | Column       | Description                                             |
 | ----------   | ------------------------------------------------------- |
 | `patient`    | patient name with id                                    |
-| `sample`    `| sample name associated with this patient                |
+| `sample`     | sample name associated with this patient                |
 | `status`     | status indicate sample is tumor or normal               |
 | `bam`        | Path to the unaligned bam file                          |
 | `pbi`        | Path to the associated pbi - bam index file. (optional) |

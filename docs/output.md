@@ -13,30 +13,30 @@ After the pipeline execution finishes, the output directory (<OUTDIR>) will cont
 The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes data using the following steps:
 
 - [PBMM2](#pbmm2) - Align samples to reference genome
-- [Alignment QC] (#alignment-qc) -  Calculate the QC metrics of each alignment  
+- [Alignment QC](#alignment-qc) -  Calculate the QC metrics of each alignment  
    - [BAM_COVERAGE](#bamcoverage) - Generate the coverage tracks for each each alignment 
    - [MOSDEPTH](#mosdepth) - Calculate BAM depth for each alginemnt
-   - [BAM_SORT_STATUS_SAMTOOLS] (#bam_sort_status_samtools) -Use samtools sort/index/stats/flagstat for each alignment   
-- [Methylation Detection and Annotation] (#methylation-detection-and-annotation) Calculate CpG methylation for each alignment and detect and annotate the Differential Methylation Regions for tumor-normal pair
+   - [BAM_SORT_STATUS_SAMTOOLS](#bam_sort_status_samtools) -Use samtools sort/index/stats/flagstat for each alignment   
+- [Methylation Detection and Annotation](#methylation-detection-and-annotation) Calculate CpG methylation for each alignment and detect and annotate the Differential Methylation Regions for tumor-normal pair
    - [CLAIR3](#clair3) - Germline SNV-INDEL  variant calling for all samples 
    - [HIPHASE](#hiphase) - Phase VCF and BAM files for normal samples
    - [SOMATIC_HIPHASE](#somatic-hiphase) - Phase VCF and BAM files for tumor samples
    - [PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES](#pbcpgtools-alignedbamtocpgscores) - Generate site methylation probabilities from mapped and phased BAM file
    - [DSS_DMR](#dss-dmr) - Use DSS(Dispersion Shrinkage for Sequencing) to detect DMR(Differential Methylation Region)    
    - [DMR_ANNOT](#dmr-annot) -Annotate the detected DMRs
-- [Somatic CNV Calling] (#somatic-cnv-calling) - Somatic CNV calling
+- [Somatic CNV Calling](#somatic-cnv-calling) - Somatic CNV calling
    - [CNVKit](#cnvKit) - Use CNVKit packages to infer and visualize somatic copy number variants 
-- [Somatic SNV & INDEL Calling] (#somatic-snv-indel-calling) - Somatic Variant call SNVs
+- [Somatic SNV & INDEL Calling](#somatic-snv-indel-calling) - Somatic Variant call SNVs
    - [DEEPSOMATIC](#deepsomatic) -  Use deepsomatic to call somatic SNV and INDELs 
    - [VEP](#vep) - Use VEP for annotating somatic SNVs
    - [MUTATIONAL_PATTERN](#mutational_pattern) - Use Mutational_Patterns for mutation signature analysis
-- [Somatic SV Calling] (#somatic-sv-calling) - Somatic variant call SVs
+- [Somatic SV Calling](#somatic-sv-calling) - Somatic variant call SVs
    - [SEVERUS](#severus) - Use Severus to call somatic SVs
    - [SV_PACK](#sv-pack) - Use SV_Pack to filter called SVs
    - [ANNOT_SV](#annot-sv) - Use Annot-SV to annotate SVs    
-- [Homologous Recombination Defficiency Estimation] (#homologous-recombination-deficiency-estimation) -  Utilize the called SNVs and SVs to estimate the Homologous Recombination Defficiency (HRD).
+- [Homologous Recombination Defficiency Estimation](#homologous-recombination-deficiency-estimation) -  Utilize the called SNVs and SVs to estimate the Homologous Recombination Defficiency (HRD).
    - [CHORD](#chord) - Use CHORD for HRD estimation 
-- [Tumor purity and ploid estimation] (#tumor-purity-and-ploid-estimation) - Estimate tumor purity and ploid
+- [Tumor purity and ploid estimation](#tumor-purity-and-ploid-estimation) - Estimate tumor purity and ploid
    - [AMBER](#amber) - Use hmftools -AMBER to analyze tumor-normal BAM pair to generate tumor BAF 
    - [COBALT](#cobalt) - Use htmlfools- COBALT to analyze tumor-normal BAM pair to determine the read depth ratio of the tumor against reference     
    - [PURPLE](#purple) - Use htmlfools- PURPLE to combine the BAF from AMBER and read depth ratio from COBALT to estimate tumor purity and ploid
@@ -132,7 +132,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 </details>
 [HIPHASE](https://github.com/PacificBiosciences/HiPhase) Phasing the germline/normal alignment
 
-### SOMATIC_HIPHASE
+### HIPHASE_SOMATIC
 <details markdown="1">
 <summary>Output files</summary>
 
@@ -144,7 +144,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
   - `<basename>.stats.csv`: hiphase result file .stats.csv     
 
 </details>
-[HIPHASE_SOMATIC](https://github.com/PacificBiosciences/HiPhase) Phasing the tumor alignment
+[SOMATIC_HIPHASE](https://github.com/PacificBiosciences/HiPhase) Phasing the tumor alignment
 
 ### PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES
 This step apply to tumor and normal channel separatedly and deliver two corresponding sub-directories. 
@@ -198,7 +198,7 @@ This step apply to tumor and normal channel separatedly and deliver two correspo
 <summary>Output files</summary>
 
 - `somatic_cnv/cnvkit`
-  _ `<prefix>_T.cnr`: .cnr file for tumor sample  
+  _ `<prefix>_T.cnr`: .cnr file for tumor sample
   _ `<prefix>_T.cns`: .cns file for tumor sample
   _ `<prefix>_T-diagram.pdf`: .pdf file for tumor sample
   _ `<prefix>_T-scatter.png`: .png file for tumor sample
@@ -213,7 +213,7 @@ This step apply to tumor and normal channel separatedly and deliver two correspo
 <summary>Output files</summary>
 
 - `somatic_snv_indel/deepsomatic`
-  _ `<prefix>_T_vs_<prefix>_N.g.vcf.gz`: somatic SNV_INDEL variant .g.vcf.gz file   
+  _ `<prefix>_T_vs_<prefix>_N.g.vcf.gz`: somatic SNV_INDEL variant .g.vcf.gz file
   _ `<prefix>_T_vs_<prefix>_N.g.vcf.gz.tbi`: somatic SNV_INDEL variant .g.vcf.gz.tbi file
   _ `<prefix>_T_vs_<prefix>_N.vcf.gz`: somatic SNV_INDEL variant .vcf.gz file
   _ `<prefix>_T_vs_<prefix>_N.vcf.gz.tbi`: somatic SNV_INDEL variant .vcf.gz.tbi file
@@ -221,7 +221,7 @@ This step apply to tumor and normal channel separatedly and deliver two correspo
 </details>
 [DEEPSOMATIC](https://github.com/google/deepsomatic) Deepsomatic for somatic SNV_INDEL calling
 
-### vep
+### VEP
 <details markdown="1">
 <summary>Output files</summary>
 
