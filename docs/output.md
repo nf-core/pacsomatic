@@ -20,7 +20,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 - [Methylation Detection and Annotation] (#methylation-detection-and-annotation) Calculate CpG methylation for each alignment and detect and annotate the Differential Methylation Regions for tumor-normal pair
    - [CLAIR3](#clair3) - Germline SNV-INDEL  variant calling for all samples 
    - [HIPHASE](#hiphase) - Phase VCF and BAM files for normal samples
-   - [HIPHASE_SOMATIC](#somatic-hiphase) - Phase VCF and BAM files for tumor samples
+   - [SOMATIC_HIPHASE](#somatic-hiphase) - Phase VCF and BAM files for tumor samples
    - [PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES](#pbcpgtools-alignedbamtocpgscores) - Generate site methylation probabilities from mapped and phased BAM file
    - [DSS_DMR](#dss-dmr) - Use DSS(Dispersion Shrinkage for Sequencing) to detect DMR(Differential Methylation Region)    
    - [DMR_ANNOT](#dmr-annot) -Annotate the detected DMRs
@@ -73,31 +73,37 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 ### BAM_COVERAGE
 <details markdown="1">
 <summary>Output files</summary>
+
 - `alignment_qc/bamcoverage`
   - `<basename>.bigWig`:  Covergare track
+
 </details>
 [bamcoverage](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html) Generate coverage track
 
 ### MOSDEPTH
 <details markdown="1">
 <summary>Output files</summary>
+
 - `alignment_qc/mosdepth`
   - `<basename>.mosdepth.global.dist.txt`: global cumulative distribution txt file indicating the proportion of total bases
   - `<basename>.mosdepth.summary.txt`:   mosdepth summary .txt file
   - `<basename>.per-base.bed.gz`:   mosdepth per-base .bed file
   - `<basename>.per-base.bed.gz.csi`:   mosdepth per-base .csi file
+
 </details>
 [mosdepth](https://github.com/brentp/mosdepth) Calculate depth 
 
 ### BAM_SORT_STATUS_SAMTOOLS
 <details markdown="1">
 <summary>Output files</summary>
+
 - `alignment_qc/samtools`
   - `<basename>.bam`: samtool sort result file .bam
   - `<basename>.bam.bai`: samtool index result file .bam.bai
   - `<basename>.flagstat`: samtools flagstat result file .flagstat 
   - `<basename>.idxstats`: samtools idxstats result file .idxstats
   - `<basename>.stats`:   samtools stats result file .stats
+
 </details>
 [BAM_SORT_STATUS_SAMTOOLS](https://www.htslib.org/doc/samtools.html) use samtools to sort and index bams and generate some alignment QC metrics 
 
@@ -105,32 +111,38 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 ### clair3 
 <details markdown="1">
 <summary>Output files</summary>
+
 - `methylation_cpg/clair3`
   - `<basename>.vcf.gz`: germline variant file .vcf.gz 
   - `<basename>.vcf.gz.tbi`: germline variant tabix index file .vcf.gz.tbi
+
 </details>
 [clair3](https://github.com/HKU-BAL/Clair3) germline SNV calling for each alingment
 
 ### HIPHASE
 <details markdown="1">
 <summary>Output files</summary>
+
 - `methylation_cpg/hiphase`
   - `<basename>.phased.bam`: hiphase result file .phased.bam
   - `<basename>.phased.bam.bai`: hiphase result file .phased.bam.bai
   - `<basename>.phased.vcf`: hiphase result file .phased.vcf
   - `<basename>.stats.csv`: hiphase result file .stats.csv 
+
 </details>
 [HIPHASE](https://github.com/PacificBiosciences/HiPhase) Phasing the germline/normal alignment
 
 ### SOMATIC_HIPHASE
 <details markdown="1">
 <summary>Output files</summary>
+
 - `methylation_cpg/hiphase_somatic`
   - `<basename>.phased.bam`: hiphase_somatic result file .phased.bam
   - `<basename>.phased.bam.bai`: hiphase_somatic result file .phased.bam.bai          
   - `<basename>.germline_phased.vcf`: hiphas_somatice result file .germline_phased.vcf
   - `<basename>.somatic_phased.vcf`: hiphase_somatic result file .somatic_phased.vcf
   - `<basename>.stats.csv`: hiphase result file .stats.csv     
+
 </details>
 [HIPHASE_SOMATIC](https://github.com/PacificBiosciences/HiPhase) Phasing the tumor alignment
 
@@ -138,6 +150,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 This step apply to tumor and normal channel separatedly and deliver two corresponding sub-directories. 
 <details markdown="1">
 <summary>Output files</summary>
+
 - `methylation_cpg/pb_cpg_tools`
   - `<basename>.combined.bed.gz`: combined compressed bed file for complete read set
   - `<basename>.combined.bed.gz.tbi`: bed file index for complete read set  
@@ -148,20 +161,24 @@ This step apply to tumor and normal channel separatedly and deliver two correspo
   - `<basename>.hap2.bed.gz`: compressed bed file for haplotype 2
   - `<basename>.hap2.bed.gz.tbi`: bed file index for haplotype 2
   - `<basename>.hap2.bw`: compressed .bw file for haplotype 2
+
 </details>
 [PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES](https://github.com/PacificBiosciences/pb-CpG-tools) Pacbio CpG methylation tool to generate CpG score from aligned bam
 
 ### DSS_DMR
 <details markdown="1">
 <summary>Output files</summary>
+
 - `methylation_cpg/dss_dmr`
   - `<basename>.dmr.tsv`: differential methylation region .tsv file 
+
 </details>
 [DSS_DMR](https://rdrr.io/bioc/DSS/src/inst/doc/DSS.R) Use DSS (Dispersion shrinkage for sequencing) package to detect Differential Methylation Regions(DMR)  
 
 ### DMR_ANNOT
 <details markdown="1">
 <summary>Output files</summary>
+
 - `methylation_cpg/dmr_annot`
   - `<prefix>_dmr_annotation_summary.tsv.gz`: DMR annotation-summary .tsv.gz file 
   - `<prefix>_hg38_genes_promoters_dmrs.tsv.gz`: DMR annotation- hg38 gene promoter .tsv.gz file 
@@ -170,6 +187,7 @@ This step apply to tumor and normal channel separatedly and deliver two correspo
   - `<prefix>_hg38_genes_exons_dmrs.tsv.gz`: DMR annotation-hg38_genes_exons 
   - `<prefix>_hg38_genes_introns_dmrs.tsv.gz`: DMR annotation- hg38_genes_introns
   - `<prefix>_hg38_genes_3UTRs_dmrs.tsv.gz`: DMR annotation- hg38_genes_3UTRs
+
 </details>
 [DMR_ANNOT](https://bioconductor.org/packages/release/bioc/html/annotatr.html) Annotate the Genomic Differential methylation Regions 
 
@@ -178,12 +196,14 @@ This step apply to tumor and normal channel separatedly and deliver two correspo
 ### CNVKit
 <details markdown="1">
 <summary>Output files</summary>
+
 - `somatic_cnv/cnvkit`
   _ `<prefix>_T.cnr`: .cnr file for tumor sample  
   _ `<prefix>_T.cns`: .cns file for tumor sample
   _ `<prefix>_T-diagram.pdf`: .pdf file for tumor sample
   _ `<prefix>_T-scatter.png`: .png file for tumor sample
   - `<prefix>_T_vs_<prefix>_N.cns`: Somatic CNV .cns file
+
 </details>
 [CNVKit](https://github.com/etal/cnvkit) CNVkit for CNV calling
 
@@ -191,33 +211,39 @@ This step apply to tumor and normal channel separatedly and deliver two correspo
 ### deepsomatic
 <details markdown="1">
 <summary>Output files</summary>
+
 - `somatic_snv_indel/deepsomatic`
   _ `<prefix>_T_vs_<prefix>_N.g.vcf.gz`: somatic SNV_INDEL variant .g.vcf.gz file   
   _ `<prefix>_T_vs_<prefix>_N.g.vcf.gz.tbi`: somatic SNV_INDEL variant .g.vcf.gz.tbi file
   _ `<prefix>_T_vs_<prefix>_N.vcf.gz`: somatic SNV_INDEL variant .vcf.gz file
   _ `<prefix>_T_vs_<prefix>_N.vcf.gz.tbi`: somatic SNV_INDEL variant .vcf.gz.tbi file
+
 </details>
 [DEEPSOMATIC](https://github.com/google/deepsomatic) Deepsomatic for somatic SNV_INDEL calling
 
 ### vep
 <details markdown="1">
 <summary>Output files</summary>
+
 - `somatic_snv_indel/vep_annot`
   _ `<prefix>_T_vs_<prefix>_N.vep.anno.vcf.gz`: VEP annotated somatic SNV_INDEL variant .vep.anno.vcf.gz file
   _ `<prefix>_T_vs_<prefix>_N.vep.anno.vcf.gz.tbi`: VEP annotated somatic SNV_INDEL variant .vep.anno.vcf.gz.tbi file
   _ `<prefix>_T_vs_<prefix>_N.vep.anno.vcf.gz_summary.html`: VEP annotation summary .vep.anno.vcf.gz_summary.html 
+
 </details>
 [VEP](https://github.com/Ensembl/ensembl-vep) VEP annotation for somatic SNV_INDEL variants
 
 ### mutational_pattern
 <details markdown="1">
 <summary>Output files</summary>
+
 - `somatic_snv_indel/mutationalpattern`
   _ `<prefix>_T_vs_<prefix>_N.mutation_profile.pdf`: mutationalpattern .pdf file
   _ `<prefix>_T_vs_<prefix>_N.mut_sigs_bootstrapped.tsv`: mutational signature boosttrapped .tsv file
   _ `<prefix>_T_vs_<prefix>_N.mut_sigs.tsv`: mutational signature .tsv file
   _ `<prefix>_T_vs_<prefix>_N.reconstructed_sigs.tsv`: mutational reconstructed signature .tsv file
   _ `<prefix>_T_vs_<prefix>_N.type_occurences.tsv`: mutational signature type occurences .tsv file
+
 </details>
 [MUTATIONAL_PATTERN](https://github.com/UMCUGenetics/MutationalPatterns) Mutational Pattern annotation for mutational signature analysis
 
@@ -225,31 +251,37 @@ This step apply to tumor and normal channel separatedly and deliver two correspo
 ### Severus
 <details markdown="1">
 <summary>Output files</summary>
+
 - `somatic_sv/severus/<prefix>`
   - `severus.log`: Severus run log file
   - `read_qual.txt`: Read quality .txt file
   - `breakpoints_double.csv`: breakpoint double .csv file
   _ `all_SVs/severus_all.vcf`: All SVs called by Severus
   _ `somatic_SVs/severus_somatic.vcf`: Somatic SVs called by Severus
+
 </details>
 [SEVERUS](https://github.com/KolmogorovLab/Severus) Somatic SV calling
 
 ### SV_Pack
 <details markdown="1">
 <summary>Output files</summary>
+
 - `somatic_sv/SVPack/<prefix>`
   - `SVPACK_FILTER.out.vcf`: SVPack filter result .out.vcf file
   - `SVPACK_MATCH.out.vcf`:  SVPack match result .out.vcf file 
   - `SVPACK_CONSEQUENCE.out.vcf`: SVPack consequence result .out.vcf file 
   - `SVPACK_TAGZYGOSITY.out.vcf`: SVPack tagzygosity result .out.vcf file
+
 </details>
 [SV_PACK](https://github.com/PacificBiosciences/svpack) filtering, comparing, and annotating SV
 
 ### ANNOT_SV
 <details markdown="1">
 <summary>Output files</summary>
+
 - `somatic_sv/annotsv_annot`
   - `<basename>.tsv`: annot_sv annotation result .tsv file
+
 </details>
 [SV_PACK](https://github.com/lgmgeo/AnnotSV) annotation of SV
 
@@ -257,9 +289,11 @@ This step apply to tumor and normal channel separatedly and deliver two correspo
 ### CHORD
 <details markdown="1">
 <summary>Output files</summary>
+
 - `hrd_estimation/chord`
   - `<basename>.chord.mutation_contexts.tsv`: chord mutation context .tsv file
   - `<basename>.chord.prediction.tsv`: chord prediction result .tsv file
+
 </details>
 [CHORD](https://github.com/UMCUGenetics/CHORD) use chord for HRD Estimation
 
@@ -267,6 +301,7 @@ This step apply to tumor and normal channel separatedly and deliver two correspo
 ### AMBER
 <details markdown="1">
 <summary>Output files</summary>
+
 - `tumor_purity_ploid/amber`
   - `amber.version`: amber version
   - `<basename>.amber.homozygousregion.tsv`:  amber result .tsv file
@@ -276,24 +311,28 @@ This step apply to tumor and normal channel separatedly and deliver two correspo
   - `<basename>.amber.contamination.vcf.gz`: amber result .contamination.vcf.gz file
   - `<basename>.amber.contamination.vcf.gz.tbi`: amber result .contamination.vcf.gz.tbi file 
   - `<basename>.amber.qc`: amber QC result .qc file 
+
 </details>
 [AMBER](https://github.com/hartwigmedical/hmftools/tree/master/amber) use hmftools-amber to generate tumor BAF file
 
 ### COBALT
 <details markdown="1">
 <summary>Output files</summary>
+
 - `tumor_purity_ploid/cobalt`
   - `cobalt.version`: cobalt version file
   - `<basename>.cobalt.gc.median.tsv`: cobalt result .gc.median.tsv file
   - `<basename>.cobalt.ratio.median.tsv`:  cobalt result .ratio.median .tsv file
   - `<basename>.cobalt.ratio.pcf`: cobalt result .ratio.pcf file
   - `<basename>.cobalt.gc.median.tsv`: cobalt result .gc.median.tsv file
+
 </details>
 [COBALT](https://github.com/hartwigmedical/hmftools/tree/master/cobalt) use hmftools-cobalt to determine read depth ratios of tumor and reference/normal genomes
 
 ### PURPLE
 <details markdown="1">
 <summary>Output files</summary>
+
 - `tumor_purity_ploid/purple`
   - `purple.version`: purple version file
   - `<prefix>_T.purple.cnv.gene.tsv`: purple result .cnv.gene.tsv file
@@ -309,6 +348,7 @@ This step apply to tumor and normal channel separatedly and deliver two correspo
   - `plot/<PREFIX>_T.purity.range.png `: purple result .purity.range.png file
   - `plot/<PREFIX>_T.segment.png `: purple result .segment.png file
   - `plot/<PREFIX>_T.somatic_data.tsv`: purple result .somatic_data.tsv file
+
 </details>
 [PURPLE](https://github.com/hartwigmedical/hmftools/tree/master/purple) use hmftools-purple to estimate purity ploidy
 
