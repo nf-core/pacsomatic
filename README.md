@@ -19,38 +19,62 @@
 
 ## Introduction
 
-**nf-core/pacsomatic** is a bioinformatics pipeline that ...
+**nf-core/pacsomatic** is a bioinformatics pipeline that use Pacbio HiFi Read data for somatic analysis. Specifically, **nf-core/pacsomatic** automatically pair the tumor/normal alignment, and proceed to a series of downstream somatic analysis including somatic variant calling(**SNV_INDEL/SV/CNV**) and annotation, tumor **clonality/purity** analysis, Homologous Recombination Deficiency(**HRD**) analsysis, methylation calling and Differential Methylation Region (**DMR**) detection and annotation. Such comparative studies of tumor/normal pairs can contribute to gain a deeper insights of cancer biology.
+Built using Nextflow, the pipeline offers scalability, portability, and reproducibility across diverse computational infrastructures. Dependency management is simplified by employing containerization technologies such as Docker, Singularity, and Conda.
 
-<!-- TODO nf-core:
-   Complete this sentence with a 2-3 sentence summary of what types of data the pipeline ingests, a brief overview of the
-   major pipeline sections and the types of output it produces. You're giving an overview to someone new
-   to nf-core here, in 15-20 seconds. For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#introduction
--->
+This pipeline utilizes the Nextflow DSL2 framework, featuring modularized processes with independent software environments, thereby making updates and maintenance straightforward. Processes are also integrated, whenever feasible, with the nf-core/modules repository to enhance usability and foster community contributions.
 
-<!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core
-     workflows use the "tube map" design for that. See https://nf-co.re/docs/contributing/design_guidelines#examples for examples.   -->
-<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+The schematic overview of the nf-core/pacsomatic workflow is shown below:
+ 
+<p align="center">
+    <img src="https://raw.githubusercontent.com/stjudecab/pacsomatic/main/docs/images/Pacsomatic_workflow_beta.png" alt="pacsomatic_workflow" />
+</p>
+
+## Pipeline Overview
+Briefly, the `pacsomaric` pipeline performs the following major steps:
+1.  Align reads ([`pbmm2`](https://github.com/PacificBiosciences/pbmm2))
+2.  Sort and index alignments ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
+3.  Choice of alignment QC a. ([`BAM_Coverage`](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html)) b. ([`MosDepth`](https://github.com/brentp/mosdepth))
+4.  Pacbio Germline SNV calling ([`Clair3`](https://github.com/HKU-BAL/Clair3))
+5.  Pacbio variant phasing ([`HiPhase`](https://github.com/PacificBiosciences/HiPhase))
+6.  Pacbio CpG methylation Call ([`pb_CpG_tools`](https://github.com/PacificBiosciences/pb-CpG-tools))
+7.  Paired tumor_normal Differential Methylation Region detection ([`DSS_DMR`](https://forge.irstea.fr/chloe.cerutti/bsseqmethdiffanalysis/-/blob/main/DSS/DMR.R))
+8.  Annotation of detected DMR ([`DMR_ANNOTA`]())
+9.  Pacbio Somatic SNV_INDEL calling ([`deepsomatic`](https://github.com/google/deepsomatic))
+10. Pacbio Somatic SNV mutation signature ([`mutational_pattern`](https://github.com/UMCUGenetics/MutationalPatterns))
+11. Pacbio Somatic SNV annotation ([`vep`](https://github.com/Ensembl/ensembl-vep))
+12. Pacbio Somatic SV calling([`severus`](https://github.com/KolmogorovLab/Severus))
+13. Pacbio Somatic SVfiltering ([`sv_pack`](https://github.com/PacificBiosciences/svpack))
+14. Pacbio Somatic SV annotation ([`annot_sv`](https://github.com/lgmgeo/AnnotSV))
+15. Homologous recombination deficiency ([`chord`](https://github.com/UMCUGenetics/CHORD))
+16. Somatic CNV calling ([`CNVKit`](https://github.com/etal/cnvkit))
+17. Tumor purity analysis substeps: a. ([`amber`](https://github.com/hartwigmedical/hmftools)) b.([`cobalt`](https://github.com/hartwigmedical/hmftools)) c.([`purple`](https://github.com/hartwigmedical/hmftools))        
+18. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
+19. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
 
 ## Usage
-
+ 
 > [!NOTE]
 > If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline) with `-profile test` before running the workflow on actual data.
-
-<!-- TODO nf-core: Describe the minimum required steps to execute the pipeline, e.g. how to prepare samplesheets.
-     Explain what rows and columns represent. For instance (please edit as appropriate):
 
 First, prepare a samplesheet with your input data that looks as follows:
 
 `samplesheet.csv`:
 
 ```csv
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
+patient,sample,status,bam,pbi
+ID1,S1_tumor,1,ID1_S1_tumor.bam,ID1_S1_tumor.bam.pbi
+ID1,S1_normal,0,ID1_S1tumor.bam,ID1_S1_normal.bam.pbi
 ```
 
-Each row represents a fastq file (single-end) or a pair of fastq files (paired end).
+Note that the `.pbi` file is not required. If you choose not to include it, your input file might look like this:
 
--->
+```csv
+patient,sample,status,bam,pbi
+ID1,S1_tumor,1,ID1_S1_tumor.bam
+ID1,S1_normal,0,ID1_S1tumor.bam
+```
+Each row represents one patient's tumor or normal' unaligned bam file and their associated index (optional).
 
 Now, you can run the pipeline using:
 
@@ -70,6 +94,16 @@ For more details and further functionality, please refer to the [usage documenta
 
 ## Pipeline output
 
+Pipeline results are organized into several sub-directories under the specified output directory (`<OUTDIR>`), structured by pac-somatic related biological functions:
+- `<OUTDIR>/alignment_qc`: Result folder inlcuds aligned bams and alignment QC.
+- `<OUTDIR>/somatic_snv_indel`: Result folder related to somatic SNV_INDEL, including somatic SNV_INDEL calling, mutational_signature analsysis, and the variant annotation of called somatic SNV_INDEL.
+- `<OUTDIR>/somatic_sv`: Result folder related to somatic SV, including somatic SV calling, and variant annotation of called somatic SVs.
+- `<OUTDIR>/somatic_cnv`: Result folder related to somatic CNV calling.
+- `<OUTDIR>/methylation_cpg`:Result folder related to Pacbio methylation analysis, including the germline SNV calling, hiphasing, and pacbio CpG methylation calling, Differential Methylation Region(DMR) detection and annotation.
+- `<OUTDIR>/hrd_estimation`: Result folder related to Homologous Recombination Deficiency(HRD), which include CHORD analyses.
+- `<OUTDIR>/tumor_purity_ploid`: Result folder related to tumor clonality/purity analysis, including the run result folder from AMBER, COBALT and PURPLE.
+- _(and more)_
+ 
 To see the results of an example test run with a full size dataset refer to the [results](https://nf-co.re/pacsomatic/results) tab on the nf-core website pipeline page.
 For more details about the output files and reports, please refer to the
 [output documentation](https://nf-co.re/pacsomatic/output).
