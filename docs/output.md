@@ -20,7 +20,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 - [Methylation Detection and Annotation](#methylation-detection-and-annotation) Calculate CpG methylation for each alignment and detect and annotate the Differential Methylation Regions for tumor-normal pair
    - [CLAIR3](#clair3) - Germline SNV-INDEL  variant calling for all samples 
    - [HIPHASE](#hiphase) - Phase VCF and BAM files for normal samples
-   - [SOMATIC HIPHASE](#somatic-hiphase) - Phase VCF and BAM files for tumor samples
+   - [HIPHASE_SOMATIC](#hiphase-somatic) - Phase VCF and BAM files for tumor samples
    - [PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES](#pbcpgtools-alignedbamtocpgscores) - Generate site methylation probabilities from mapped and phased BAM file
    - [DSS_DMR](#dss-dmr) - Use DSS(Dispersion Shrinkage for Sequencing) to detect DMR(Differential Methylation Region)    
    - [DMR_ANNOT](#dmr-annot) -Annotate the detected DMRs
@@ -132,7 +132,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 </details>
 [HIPHASE](https://github.com/PacificBiosciences/HiPhase) Phasing the germline/normal alignment
 
-### SOMATIC_HIPHASE
+### HIPHASE_SOMATIC
 <details markdown="1">
 <summary>Output files</summary>
 
@@ -144,7 +144,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
   - `<basename>.stats.csv`: hiphase result file .stats.csv     
 
 </details>
-[SOMATIC_HIPHASE](https://github.com/PacificBiosciences/HiPhase) Phasing the tumor alignment
+[HIPHASE_SOMATIC](https://github.com/PacificBiosciences/HiPhase) Phasing the tumor alignment
 
 ### PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES
 This step apply to tumor and normal channel separatedly and deliver two corresponding sub-directories. 
@@ -212,10 +212,10 @@ This step apply to tumor and normal channel separatedly and deliver two correspo
 <summary>Output files</summary>
 
 - `somatic_snv_indel/deepsomatic`
-  _ `<prefix>_T_vs_<prefix>_N.g.vcf.gz`: somatic SNV_INDEL variant .g.vcf.gz file
-  _ `<prefix>_T_vs_<prefix>_N.g.vcf.gz.tbi`: somatic SNV_INDEL variant .g.vcf.gz.tbi file
-  _ `<prefix>_T_vs_<prefix>_N.vcf.gz`: somatic SNV_INDEL variant .vcf.gz file
-  _ `<prefix>_T_vs_<prefix>_N.vcf.gz.tbi`: somatic SNV_INDEL variant .vcf.gz.tbi file
+  - `<prefix>_T_vs_<prefix>_N.g.vcf.gz`: somatic SNV_INDEL variant .g.vcf.gz file
+  - `<prefix>_T_vs_<prefix>_N.g.vcf.gz.tbi`: somatic SNV_INDEL variant .g.vcf.gz.tbi file
+  - `<prefix>_T_vs_<prefix>_N.vcf.gz`: somatic SNV_INDEL variant .vcf.gz file
+  - `<prefix>_T_vs_<prefix>_N.vcf.gz.tbi`: somatic SNV_INDEL variant .vcf.gz.tbi file
 
 </details>
 [DEEPSOMATIC](https://github.com/google/deepsomatic) Deepsomatic for somatic SNV_INDEL calling
@@ -225,9 +225,9 @@ This step apply to tumor and normal channel separatedly and deliver two correspo
 <summary>Output files</summary>
 
 - `somatic_snv_indel/vep_annot`
-  _ `<prefix>_T_vs_<prefix>_N.vep.anno.vcf.gz`: VEP annotated somatic SNV_INDEL variant .vep.anno.vcf.gz file
-  _ `<prefix>_T_vs_<prefix>_N.vep.anno.vcf.gz.tbi`: VEP annotated somatic SNV_INDEL variant .vep.anno.vcf.gz.tbi file
-  _ `<prefix>_T_vs_<prefix>_N.vep.anno.vcf.gz_summary.html`: VEP annotation summary .vep.anno.vcf.gz_summary.html 
+  - `<prefix>_T_vs_<prefix>_N.vep.anno.vcf.gz`: VEP annotated somatic SNV_INDEL variant .vep.anno.vcf.gz file
+  - `<prefix>_T_vs_<prefix>_N.vep.anno.vcf.gz.tbi`: VEP annotated somatic SNV_INDEL variant .vep.anno.vcf.gz.tbi file
+  - `<prefix>_T_vs_<prefix>_N.vep.anno.vcf.gz_summary.html`: VEP annotation summary .vep.anno.vcf.gz_summary.html 
 
 </details>
 [VEP](https://github.com/Ensembl/ensembl-vep) VEP annotation for somatic SNV_INDEL variants
@@ -237,11 +237,11 @@ This step apply to tumor and normal channel separatedly and deliver two correspo
 <summary>Output files</summary>
 
 - `somatic_snv_indel/mutationalpattern`
-  _ `<prefix>_T_vs_<prefix>_N.mutation_profile.pdf`: mutationalpattern .pdf file
-  _ `<prefix>_T_vs_<prefix>_N.mut_sigs_bootstrapped.tsv`: mutational signature boosttrapped .tsv file
-  _ `<prefix>_T_vs_<prefix>_N.mut_sigs.tsv`: mutational signature .tsv file
-  _ `<prefix>_T_vs_<prefix>_N.reconstructed_sigs.tsv`: mutational reconstructed signature .tsv file
-  _ `<prefix>_T_vs_<prefix>_N.type_occurences.tsv`: mutational signature type occurences .tsv file
+  - `<prefix>_T_vs_<prefix>_N.mutation_profile.pdf`: mutationalpattern .pdf file
+  - `<prefix>_T_vs_<prefix>_N.mut_sigs_bootstrapped.tsv`: mutational signature boosttrapped .tsv file
+  - `<prefix>_T_vs_<prefix>_N.mut_sigs.tsv`: mutational signature .tsv file
+  - `<prefix>_T_vs_<prefix>_N.reconstructed_sigs.tsv`: mutational reconstructed signature .tsv file
+  - `<prefix>_T_vs_<prefix>_N.type_occurences.tsv`: mutational signature type occurences .tsv file
 
 </details>
 [MUTATIONAL_PATTERN](https://github.com/UMCUGenetics/MutationalPatterns) Mutational Pattern annotation for mutational signature analysis
