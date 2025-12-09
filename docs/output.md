@@ -20,13 +20,13 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 - [Methylation Detection and Annotation](#methylation-detection-and-annotation) Calculate CpG methylation for each alignment and detect and annotate the Differential Methylation Regions for tumor-normal pair
    - [CLAIR3](#clair3) - Germline SNV-INDEL  variant calling for all samples 
    - [HIPHASE](#hiphase) - Phase VCF and BAM files for normal samples
-   - [SOMATIC_HIPHASE](#somatic-hiphase) - Phase VCF and BAM files for tumor samples
+   - [SOMATIC HIPHASE](#somatic-hiphase) - Phase VCF and BAM files for tumor samples
    - [PBCPGTOOLS_ALIGNEDBAMTOCPGSCORES](#pbcpgtools-alignedbamtocpgscores) - Generate site methylation probabilities from mapped and phased BAM file
    - [DSS_DMR](#dss-dmr) - Use DSS(Dispersion Shrinkage for Sequencing) to detect DMR(Differential Methylation Region)    
    - [DMR_ANNOT](#dmr-annot) -Annotate the detected DMRs
 - [Somatic CNV Calling](#somatic-cnv-calling) - Somatic CNV calling
    - [CNVKit](#cnvKit) - Use CNVKit packages to infer and visualize somatic copy number variants 
-- [Somatic SNV & INDEL Calling](#somatic-snv-indel-calling) - Somatic Variant call SNVs
+- [Somatic SNV INDEL Calling](#somatic-snv-indel-calling) - Somatic Variant call SNVs
    - [DEEPSOMATIC](#deepsomatic) -  Use deepsomatic to call somatic SNV and INDELs 
    - [VEP](#vep) - Use VEP for annotating somatic SNVs
    - [MUTATIONAL_PATTERN](#mutational_pattern) - Use Mutational_Patterns for mutation signature analysis
@@ -132,7 +132,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 </details>
 [HIPHASE](https://github.com/PacificBiosciences/HiPhase) Phasing the germline/normal alignment
 
-### HIPHASE_SOMATIC
+### SOMATIC_HIPHASE
 <details markdown="1">
 <summary>Output files</summary>
 
@@ -191,23 +191,22 @@ This step apply to tumor and normal channel separatedly and deliver two correspo
 </details>
 [DMR_ANNOT](https://bioconductor.org/packages/release/bioc/html/annotatr.html) Annotate the Genomic Differential methylation Regions 
 
-### Somatic CNV Calling
-
+## Somatic CNV Calling
 ### CNVKit
 <details markdown="1">
 <summary>Output files</summary>
 
 - `somatic_cnv/cnvkit`
-  _ `<prefix>_T.cnr`: .cnr file for tumor sample
-  _ `<prefix>_T.cns`: .cns file for tumor sample
-  _ `<prefix>_T-diagram.pdf`: .pdf file for tumor sample
-  _ `<prefix>_T-scatter.png`: .png file for tumor sample
+  - `<prefix>_T.cnr`: .cnr file for tumor sample
+  - `<prefix>_T.cns`: .cns file for tumor sample
+  - `<prefix>_T-diagram.pdf`: .pdf file for tumor sample
+  - `<prefix>_T-scatter.png`: .png file for tumor sample
   - `<prefix>_T_vs_<prefix>_N.cns`: Somatic CNV .cns file
 
 </details>
 [CNVKit](https://github.com/etal/cnvkit) CNVkit for CNV calling
 
-### Somatic SNV & INDEL Calling
+## Somatic SNV INDEL Calling
 ### deepsomatic
 <details markdown="1">
 <summary>Output files</summary>
@@ -247,7 +246,7 @@ This step apply to tumor and normal channel separatedly and deliver two correspo
 </details>
 [MUTATIONAL_PATTERN](https://github.com/UMCUGenetics/MutationalPatterns) Mutational Pattern annotation for mutational signature analysis
 
-### Somatic SV Calling
+## Somatic SV Calling
 ### Severus
 <details markdown="1">
 <summary>Output files</summary>
@@ -256,8 +255,8 @@ This step apply to tumor and normal channel separatedly and deliver two correspo
   - `severus.log`: Severus run log file
   - `read_qual.txt`: Read quality .txt file
   - `breakpoints_double.csv`: breakpoint double .csv file
-  _ `all_SVs/severus_all.vcf`: All SVs called by Severus
-  _ `somatic_SVs/severus_somatic.vcf`: Somatic SVs called by Severus
+  - `all_SVs/severus_all.vcf`: All SVs called by Severus
+  - `somatic_SVs/severus_somatic.vcf`: Somatic SVs called by Severus
 
 </details>
 [SEVERUS](https://github.com/KolmogorovLab/Severus) Somatic SV calling
@@ -285,7 +284,7 @@ This step apply to tumor and normal channel separatedly and deliver two correspo
 </details>
 [SV_PACK](https://github.com/lgmgeo/AnnotSV) annotation of SV
 
-### Homologous Recombination Deficiency Estimation
+## Homologous Recombination Deficiency Estimation
 ### CHORD
 <details markdown="1">
 <summary>Output files</summary>
@@ -297,7 +296,7 @@ This step apply to tumor and normal channel separatedly and deliver two correspo
 </details>
 [CHORD](https://github.com/UMCUGenetics/CHORD) use chord for HRD Estimation
 
-### Tumor purity and ploid estimation
+## Tumor purity and ploid estimation
 ### AMBER
 <details markdown="1">
 <summary>Output files</summary>
