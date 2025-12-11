@@ -61,7 +61,6 @@ workflow METHYLATION_ANALYSIS {
                 .map { patient_normal_id, pair_meta, tumor_bed, normal_meta, normal_bed ->
                     [pair_meta, tumor_bed, normal_bed]
                 }
-            ch_tn_pair_dmr.view()
 
             DSS_DMR(ch_tn_pair_dmr)
             ch_dmr_tsv = DSS_DMR.out.dmr
