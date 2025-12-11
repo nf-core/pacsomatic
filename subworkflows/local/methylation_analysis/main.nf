@@ -32,7 +32,7 @@ workflow METHYLATION_ANALYSIS {
         // Add patient as key for pairing
         ch_normal_cpg_bed = PBCPGTOOLS_NORMAL.out.combined_bed
             .map { meta, cpg_bed ->
-                [meta.patient, meta, cpg_bed]
+                [meta.id, meta, cpg_bed]
             }
 
         //
@@ -43,8 +43,9 @@ workflow METHYLATION_ANALYSIS {
 
         // Add patient as key for pairing
         ch_tumor_cpg_bed = PBCPGTOOLS_TUMOR.out.combined_bed
-            .map { meta, cpg_bed ->
-                [meta.patient, meta, cpg_bed]
+            .map { pair_meta, cpg_bed ->
+                def patient_normal_id = "${pair_meta.patient}_${pair_meta.normal_id}"
+                [patient_normal_id, pair_meta, cpg_bed]
             }
 
         //
@@ -57,15 +58,10 @@ workflow METHYLATION_ANALYSIS {
             // Pair tumor and normal CpG BED files by patient
             ch_tn_pair_dmr = ch_tumor_cpg_bed
                 .combine(ch_normal_cpg_bed, by: [0])
-                .map { patient, tumor_meta, tumor_bed, normal_meta, normal_bed ->
-                    def pair_meta = [
-                        patient: patient,
-                        tumor_id:  tumor_meta.sample,
-                        normal_id: normal_meta.sample,
-                        id: "${patient}_${tumor_meta.sample}_vs_${normal_meta.sample}"
-                    ]
+                .map { patient_normal_id, pair_meta, tumor_bed, normal_meta, normal_bed ->
                     [pair_meta, tumor_bed, normal_bed]
                 }
+            ch_tn_pair_dmr.view()
 
             DSS_DMR(ch_tn_pair_dmr)
             ch_dmr_tsv = DSS_DMR.out.dmr

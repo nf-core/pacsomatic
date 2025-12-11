@@ -115,8 +115,8 @@ workflow SOMATIC_SNV_INDEL {
             .combine(ch_somatic_hiphasing_bam_bai, by: 0)
             .combine(ch_somatic_hiphasing_vcf, by: 0)
             .multiMap { meta_id, meta, vcf, tbi, meta2, bam, bai, meta3, somatic_vcf, somatic_tbi ->
-                vcf_tbi:          [meta, vcf, tbi]
-                bam_bai:          [meta2, bam, bai]
+                vcf_tbi:          [meta3, vcf, tbi]
+                bam_bai:          [meta3, bam, bai]
                 somatic_vcf_tbi:  [meta3, somatic_vcf, somatic_tbi]
             }
 
