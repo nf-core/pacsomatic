@@ -110,13 +110,6 @@
                             "modules"
                         ]
                     },
-                    "fastqc": {
-                        "branch": "master",
-                        "git_sha": "dc94b6ee04a05ddb9f7ae050712ff30a13149164",
-                        "installed_by": [
-                            "modules"
-                        ]
-                    },
                     "hiphase": {
                         "branch": "master",
                         "git_sha": "41dfa3f7c0ffabb96a6a813fe321c6d1cc5b6e46",
