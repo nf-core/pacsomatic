@@ -41,16 +41,22 @@ workflow SOMATIC_SV {
     //
     // SVPACK: SV filtering and annotation (optional)
     //
+    ch_sv_filtered_vcf = ch_sv_vcf
+
     if (!skip_svpack) {
         // Validate SVPACK parameters
         if (!params.svpack_ctrl_vcf || !params.svpack_ref_gff) {
             log.warn "SVPACK filtering requires svpack_control_vcf and svpack_ref_gff parameters. Skipping SVPACK."
         } else {
             SVPACK_ANNOTATE(ch_sv_vcf, ch_svpack_ctrl_vcf, ch_svpack_ref_gff)
-            ch_sv_vcf = SVPACK_ANNOTATE.out.tagged_vcf
+            ch_sv_filtered_vcf = SVPACK_ANNOTATE.out.tagged_vcf
             ch_versions = ch_versions.mix(SVPACK_ANNOTATE.out.versions)
         }
     }
+
+    // Compress and index SV VCF
+    TABIX_SV_VCF(ch_sv_filtered_vcf)
+    ch_versions = ch_versions.mix(TABIX_SV_VCF.out.versions)
 
     //
     // ANNOTSV: SV annotation (optional)
@@ -69,10 +75,6 @@ workflow SOMATIC_SV {
                 ch_annotsv_cache = ANNOTSV_INSTALLANNOTATIONS.out.annotations
                     .map { AnnotSV_annotations -> [[:], AnnotSV_annotations] }
             }
-
-            // Compress and index SV VCF
-            TABIX_SV_VCF(ch_sv_vcf)
-            ch_versions = ch_versions.mix(TABIX_SV_VCF.out.versions)
 
             // Prepare input for ANNOTSV
             ch_annotsv_input = TABIX_SV_VCF.out.gz_tbi
