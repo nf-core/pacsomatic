@@ -17,7 +17,6 @@ process AMBER {
     output:
     tuple val(meta), path('amber/'), emit: amber_dir
     path 'versions.yml'            , emit: versions
-    path '.command.*'              , emit: command_files
 
     when:
     task.ext.when == null || task.ext.when
@@ -71,6 +70,9 @@ process AMBER {
 
     touch amber/placeholder
 
-    echo -e '${task.process}:\\n  stub: noversions\\n' > versions.yml
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        amber: \$(amber -version | sed -n '/^Amber version/ { s/^.* //p }')
+    END_VERSIONS
     """
 }
