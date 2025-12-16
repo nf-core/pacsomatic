@@ -23,6 +23,7 @@ workflow SIGNATURE_ANALYSIS {
     //
     // CHORD: Homologous recombination deficiency (HRD) detection
     //
+    ch_chord_mutation = Channel.empty()
     ch_chord_prediction = Channel.empty()
 
     if (!skip_chord) {
@@ -45,27 +46,26 @@ workflow SIGNATURE_ANALYSIS {
         // Combine SNV and SV VCFs
         ch_chord_input = ch_chord_somatic_snv_vcf
             .combine(ch_chord_somatic_sv_vcf, by: 0)
-            .map { pair_id, pair_meta, snv_vcf, pair_meta2, sv_vcf ->
+            .map { _pair_id, pair_meta, snv_vcf, _pair_meta2, sv_vcf ->
                 def chord_meta = [
                     patient:    pair_meta.patient,
                     tumor_id:   pair_meta.tumor_id,
                     normal_id:  pair_meta.normal_id,
-                    id:         pair_meta.id,
-                    sample_id:  pair_meta.id
+                    id:         pair_meta.id
                 ]
                 [chord_meta, snv_vcf, sv_vcf]
             }
 
         // Prepare genome files
-        chord_genome_fasta = ch_genome_fasta.map { meta, fasta -> fasta }
-        chord_genome_fai   = ch_genome_fai.map { meta, fai -> fai }
+        chord_genome_fasta = ch_genome_fasta.map { _meta, fasta -> fasta }
+        chord_genome_fai   = ch_genome_fai.map { _meta, fai -> fai }
 
         // Create genome dictionary
         SAMTOOLS_DICT(ch_genome_fasta)
         ch_versions = ch_versions.mix(SAMTOOLS_DICT.out.versions)
 
         chord_genome_dict = SAMTOOLS_DICT.out.dict
-            .map { meta, dict -> dict }
+            .map { _meta, dict -> dict }
 
         CHORD(
             ch_chord_input,
@@ -73,14 +73,15 @@ workflow SIGNATURE_ANALYSIS {
             chord_genome_fai,
             chord_genome_dict
         )
-        ch_chord_prediction = CHORD.out.chord_dir
+        ch_chord_mutation = CHORD.out.mutation
+        ch_chord_prediction = CHORD.out.prediction
         ch_versions = ch_versions.mix(CHORD.out.versions)
     }
 
     //
     // MUTATIONALPATTERN: Mutational signature analysis
     //
-    ch_mutational_profile = Channel.empty()
+    ch_mutational_signature = Channel.empty()
 
     if (!skip_mutationalpattern) {
         // Prepare genome parameter
@@ -98,7 +99,8 @@ workflow SIGNATURE_ANALYSIS {
     }
 
     emit:
-    chord_prediction      = ch_chord_prediction     // channel: [ meta, prediction.txt ]
-    mutational_signature  = ch_mutational_profile   // channel: [ meta, signature ]
+    chord_mutation        = ch_chord_mutation       // channel: [ meta, mutation.tsv ]
+    chord_prediction      = ch_chord_prediction     // channel: [ meta, prediction.tsv ]
+    mutational_signature  = ch_mutational_signature // channel: [ meta, signature ]
     versions              = ch_versions             // channel: [ versions.yml ]
 }

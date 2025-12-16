@@ -14,35 +14,31 @@ process CHORD {
     path genome_dict
 
     output:
-    tuple val(meta), path('chord/'), emit: chord_dir
-    path 'versions.yml'            , emit: versions
-    path '.command.*'              , emit: command_files
+    tuple val(meta), path("*.mutation_contexts.tsv"), emit: mutation
+    tuple val(meta), path("*.prediction.tsv"), emit: prediction
+    path 'versions.yml', emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
     def args = task.ext.args ?: ''
-
+    def prefix = task.ext.prefix ?: "${meta.id}"
     def xmx_mod = task.ext.xmx_mod ?: 0.95
-
     def log_level_arg = task.ext.log_level ? "-log_level ${task.ext.log_level}" : ''
-
     """
     ## NOTE(LN): The CHORD jar runs an embedded R script using 'com.hartwig.hmftools.common.utils.r.RExecutor' which requires absolute
     ## paths. Relative paths don't work because RExecutor executes from a tmp dir, and not the working dir of this nextflow process
 
-    mkdir -p chord/
-
     chord \\
         -Xmx${Math.round(task.memory.bytes * xmx_mod)} \\
         ${args} \\
-        -sample ${meta.sample_id} \\
-        -snv_indel_vcf_file \$(realpath ${smlv_vcf}) \\
-        -sv_vcf_file \$(realpath ${sv_vcf}) \\
+        -sample ${prefix} \\
+        -snv_indel_vcf_file ${smlv_vcf} \\
+        -sv_vcf_file ${sv_vcf} \\
         -ref_genome ${genome_fasta} \\
         ${log_level_arg} \\
-        -output_dir \$(realpath chord/)
+        -output_dir .
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -51,12 +47,14 @@ process CHORD {
     """
 
     stub:
+    def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    mkdir -p chord/
+    touch ${prefix}.chord.mutation_contexts.tsv
+    touch ${prefix}.chord.prediction.tsv
 
-    touch chord/${meta.sample_id}.chord.mutation_contexts.tsv
-    touch chord/${meta.sample_id}.chord.prediction.tsv
-
-    echo -e '${task.process}:\\n  stub: noversions\\n' > versions.yml
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        chord: \$(chord -version | sed -n '/^CHORD version/ { s/^.* //p }')
+    END_VERSIONS
     """
 }
