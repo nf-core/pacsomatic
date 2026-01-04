@@ -119,16 +119,37 @@ Results are organized into functionally grouped subdirectories:
 
 ```
 results/
-├── alignment_qc/              # Aligned BAMs and QC metrics
-├── somatic_snv_indel/         # SNV/indel calls, signatures, annotations
-├── somatic_sv/                # Structural variant calls and annotations
-├── somatic_cnv/               # Copy number variant calls
-├── methylation_cpg/           # Methylation calls, DMRs, annotations
-├── hrd_estimation/            # Homologous recombination deficiency analysis
-├── tumor_purity_ploidy/       # Tumor purity, ploidy, clonality results
-├── pipeline_info/             # Pipeline execution reports
-└── multiqc/                   # Aggregated QC report
+├── alignment/                 # Aligned BAMs and QC metrics
+│   ├── pbmm2/                # Aligned BAM files
+│   └── qc/                   # Alignment quality control
+├── germline_snv/             # Germline variants and phasing
+│   ├── clair3/              # Germline SNV/indel calls
+│   └── hiphase/             # Phased germline variants
+├── somatic_snv/              # Somatic SNV/indel analysis
+│   ├── deepsomatic/         # Somatic variant calls
+│   ├── vep_annot/           # VEP annotations
+│   └── hiphase_somatic/     # Phased somatic variants
+├── somatic_sv/               # Structural variant analysis
+│   ├── severus/             # SV calls
+│   ├── svpack/              # Filtered SVs
+│   └── annotsv_annot/       # SV annotations
+├── somatic_cnv/              # Copy number variants
+│   └── cnvkit/              # CNVkit results
+├── methylation/              # Methylation analysis
+│   ├── pb_cpg_tools/        # CpG methylation scores
+│   ├── dss_dmr/             # Differential methylation regions
+│   └── dmr_annot/           # DMR annotations
+├── tumor_clonality/          # Tumor purity and ploidy
+│   ├── amber/               # BAF analysis
+│   ├── cobalt/              # Read depth ratios
+│   └── purple/              # Purity/ploidy estimation
+├── signature_analysis/       # Mutational signatures and HRD
+│   ├── mutationalpattern/   # Mutation signatures
+│   └── chord/               # HRD estimation
+├── pipeline_info/            # Pipeline execution reports
+└── multiqc/                  # Aggregated QC report
 ```
+
 For detailed descriptions of output files, see the [output documentation](https://nf-co.re/pacsomatic/output).
 
 To view example results from a full-size test dataset, visit the [results page](https://nf-co.re/pacsomatic/results) on the nf-core website.
