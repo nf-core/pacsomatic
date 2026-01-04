@@ -2,9 +2,9 @@
 // Uncompress and prepare reference genome files
 //
 
-include { PIGZ_UNCOMPRESS as GUNZIP_GENOME_FASTA } from '../../modules/nf-core/pigz/uncompress/main'
-include { UNZIPFILES as UNZIP_GENOME_FASTA       } from '../../modules/nf-core/unzipfiles/main'
-include { SAMTOOLS_FAIDX as GENOME_FAIDX         } from '../../modules/nf-core/samtools/faidx/main'
+include { GUNZIP as GUNZIP_GENOME_FASTA    } from '../../modules/nf-core/gunzip/main'
+include { UNZIPFILES as UNZIP_GENOME_FASTA } from '../../modules/nf-core/unzipfiles/main'
+include { SAMTOOLS_FAIDX as GENOME_FAIDX   } from '../../modules/nf-core/samtools/faidx/main'
 
 
 workflow PREPARE_GENOME {
