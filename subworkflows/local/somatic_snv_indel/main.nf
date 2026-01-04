@@ -86,8 +86,10 @@ workflow SOMATIC_SNV_INDEL {
     //
     // HIPHASE_SOMATIC: Somatic variant phasing (optional)
     //
-    ch_somatic_phased_bam_bai = Channel.empty()
-    ch_somatic_phased_vcf     = Channel.empty()
+    ch_germline_phased_bam_bai = Channel.empty()
+
+    ch_germline_phased_vcf     = Channel.empty()
+    ch_somatic_phased_vcf      = Channel.empty()
 
     if (!skip_somatic_hiphase) {
         // Prepare tumor germline VCF channel with patient_tumor_id as key
