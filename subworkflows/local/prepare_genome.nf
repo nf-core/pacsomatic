@@ -26,7 +26,7 @@ workflow PREPARE_GENOME {
         if (genome_fasta.endsWith('.gz')) {
             GUNZIP_GENOME_FASTA ([ [:], file(genome_fasta, checkIfExists: true) ])
 
-            ch_genome_fasta = GUNZIP_GENOME_FASTA.out.file
+            ch_genome_fasta = GUNZIP_GENOME_FASTA.out.gunzip
             ch_versions = ch_versions.mix(GUNZIP_GENOME_FASTA.out.versions)
 
         } else if (genome_fasta.endsWith('.zip')) {
