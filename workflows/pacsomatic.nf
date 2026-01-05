@@ -371,19 +371,15 @@ workflow PACSOMATIC {
     //
     // SUBWORKFLOW: Methylation analysis and DMR detection
     //
-    if (!params.skip_pbcpgtools) {
-        // Check if we have phased BAMs available
-        if (ch_phased_normal_bam && ch_somatic_phased_bam) {
-            METHYLATION_ANALYSIS(
-                ch_phased_normal_bam,
-                ch_somatic_phased_bam,
-                params.skip_dmr,
-                params.skip_dmr_anno
-            )
-            ch_versions = ch_versions.mix(METHYLATION_ANALYSIS.out.versions)
-        } else {
-            log.warn "Methylation analysis requires phased BAMs. Skipping because --skip_hiphase or --skip_somatic_hiphase is enabled."
-        }
+    // Methylation analysis requires phased BAMs from both germline and somatic phasing
+    if (!params.skip_pbcpgtools && !params.skip_hiphase && !params.skip_somatic_hiphase) {
+        METHYLATION_ANALYSIS(
+            ch_phased_normal_bam,
+            ch_somatic_phased_bam,
+            params.skip_dmr,
+            params.skip_dmr_anno
+        )
+        ch_versions = ch_versions.mix(METHYLATION_ANALYSIS.out.versions)
     }
 
     //
