@@ -1,0 +1,31 @@
+nextflow_pipeline {
+
+    name "Test pipeline: NFCORE_PACSOMATIC"
+    script "../main.nf"
+    tag "pipeline"
+    tag "nfcore_pacsomatic"
+    tag "test_skip_cnv"
+    profile "test_skip_cnv"
+
+    test("-profile test_skip_cnv") {
+
+        when {
+            params {
+                outdir = "$outputDir"
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert snapshot(
+                    path("$outputDir/alignment/").list(),
+                    path("$outputDir/germline_snv/").list(),
+                    path("$outputDir/somatic_snv/").list(),
+                    path("$outputDir/somatic_sv/").list(),
+                    path("$outputDir/pipeline_info/nf_core_pacsomatic_software_mqc_versions.yml")
+                ).match() }
+            )
+        }
+    }
+}

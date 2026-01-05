@@ -1,0 +1,34 @@
+nextflow_pipeline {
+
+    name "Test pipeline: NFCORE_PACSOMATIC"
+    script "../main.nf"
+    tag "pipeline"
+    tag "nfcore_pacsomatic"
+    tag "test"
+    profile "test"
+
+    test("-profile test") {
+
+        when {
+            params {
+                outdir = "$outputDir"
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert snapshot(
+                    // Check for specific output directories and key files
+                    path("$outputDir/alignment/pbmm2/").list(),
+                    path("$outputDir/germline_snv/clair3/").list(),
+                    path("$outputDir/somatic_snv/deepsomatic/").list(),
+                    path("$outputDir/somatic_sv/severus/").list(),
+                    path("$outputDir/somatic_cnv/cnvkit/").list(),
+                    path("$outputDir/multiqc/multiqc_report.html"),
+                    path("$outputDir/pipeline_info/nf_core_pacsomatic_software_mqc_versions.yml")
+                ).match() }
+            )
+        }
+    }
+}
