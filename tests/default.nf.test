@@ -18,16 +18,63 @@ nextflow_pipeline {
         then {
             assertAll(
                 { assert workflow.success },
+                // Check alignment outputs (BAM files and indexes)
                 { assert snapshot(
-                    // Check for specific output directories and key files
-                    path("$outputDir/alignment/pbmm2/").list(),
-                    path("$outputDir/germline_snv/clair3/").list(),
-                    path("$outputDir/somatic_snv/deepsomatic/").list(),
-                    path("$outputDir/somatic_sv/severus/").list(),
-                    path("$outputDir/somatic_cnv/cnvkit/").list(),
-                    path("$outputDir/multiqc/multiqc_report.html"),
+                    path("$outputDir/alignment/pbmm2/").list().findAll {
+                        it.toString().endsWith('.bam') || it.toString().endsWith('.bam.bai')
+                    }
+                ).match('alignment') },
+                // Check germline SNV VCF files using VCF plugin
+                { assert snapshot(
+                    path("$outputDir/germline_snv/clair3/").list().findAll {
+                        it.toString().endsWith('.vcf.gz')
+                    }.collectEntries { vcfFile ->
+                        [(vcfFile.toString()): path("$outputDir/germline_snv/clair3/$vcfFile").vcf.summary]
+                    }
+                ).match('germline_vcf_summary') },
+                { assert snapshot(
+                    path("$outputDir/germline_snv/clair3/").list().findAll {
+                        it.toString().endsWith('.vcf.gz.tbi')
+                    }
+                ).match('germline_indexes') },
+                // Check somatic SNV VCF files
+                { assert snapshot(
+                    path("$outputDir/somatic_snv/deepsomatic/").list().findAll {
+                        it.toString().endsWith('.vcf.gz') && !it.toString().endsWith('.g.vcf.gz')
+                    }.collectEntries { vcfFile ->
+                        [(vcfFile.toString()): path("$outputDir/somatic_snv/deepsomatic/$vcfFile").vcf.summary]
+                    }
+                ).match('somatic_snv_vcf_summary') },
+                { assert snapshot(
+                    path("$outputDir/somatic_snv/deepsomatic/").list().findAll {
+                        it.toString().endsWith('.vcf.gz.tbi') || it.toString().endsWith('.g.vcf.gz') || it.toString().endsWith('.g.vcf.gz.tbi')
+                    }
+                ).match('somatic_snv_indexes') },
+                // Check somatic SV VCF files using VCF plugin
+                { assert snapshot(
+                    path("$outputDir/somatic_sv/severus/").list().findAll {
+                        it.toString().endsWith('.vcf') && !it.toString().contains('severus_all')
+                    }.collectEntries { vcfFile ->
+                        [(vcfFile.toString()): path("$outputDir/somatic_sv/severus/$vcfFile").vcf.summary]
+                    }
+                ).match('somatic_sv_vcf_summary') },
+                { assert snapshot(
+                    path("$outputDir/somatic_sv/severus/").list().findAll {
+                        it.toString().endsWith('.csv') || it.toString().endsWith('.txt') || it.toString().endsWith('severus_all.vcf')
+                    }
+                ).match('somatic_sv_stable') },
+                // Check CNV outputs - exclude PDFs, check stable files
+                { assert snapshot(
+                    path("$outputDir/somatic_cnv/cnvkit/").list().findAll {
+                        !it.toString().endsWith('.pdf') && !it.toString().endsWith('.png')
+                    }
+                ).match('cnv_stable_files') },
+                // Check that reports exist but don't compare content (non-deterministic)
+                { assert path("$outputDir/multiqc/multiqc_report.html").exists() },
+                // Check stable pipeline info
+                { assert snapshot(
                     path("$outputDir/pipeline_info/nf_core_pacsomatic_software_mqc_versions.yml")
-                ).match() }
+                ).match('pipeline_info') }
             )
         }
     }
