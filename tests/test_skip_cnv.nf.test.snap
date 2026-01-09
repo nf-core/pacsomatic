@@ -1,0 +1,261 @@
+{
+    "somatic_snv": {
+        "content": [
+            {
+                "Patient_HG008_DS_MT_T_vs_DS_MT_N": "VcfFile [chromosomes=[MT], sampleCount=1, variantCount=124, phased=false, phasedAutodetect=false]"
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.04.6"
+        },
+        "timestamp": "2026-01-09T15:12:52.000554266"
+    },
+    "-profile test_skip_cnv": {
+        "content": [
+            27,
+            {
+                "CLAIR3": {
+                    "clair3": "1.2.0"
+                },
+                "DEEPSOMATIC": {
+                    "deepsomatic": "1.7.0"
+                },
+                "DEEPTOOLS_BAMCOVERAGE": {
+                    "deeptools": "3.5.5"
+                },
+                "GENOME_FAIDX": {
+                    "samtools": "1.22.1"
+                },
+                "HIPHASE": {
+                    "hiphase": "1.4.5-578e159"
+                },
+                "HIPHASE_SOMATIC": {
+                    "hiphase": "1.4.5-578e159"
+                },
+                "MOSDEPTH": {
+                    "mosdepth": "0.3.10"
+                },
+                "PBCPGTOOLS_NORMAL": {
+                    "pbcpgtools": "3.0.0"
+                },
+                "PBCPGTOOLS_TUMOR": {
+                    "pbcpgtools": "3.0.0"
+                },
+                "PBMM2_ALIGN": {
+                    "pbmm2": "1.14.99"
+                },
+                "SAMTOOLS_FLAGSTAT": {
+                    "samtools": "1.22.1"
+                },
+                "SAMTOOLS_IDXSTATS": {
+                    "samtools": "1.22.1"
+                },
+                "SAMTOOLS_INDEX": {
+                    "samtools": "1.22.1"
+                },
+                "SAMTOOLS_SORT": {
+                    "samtools": "1.22.1"
+                },
+                "SAMTOOLS_STATS": {
+                    "samtools": "1.22.1"
+                },
+                "SEVERUS": {
+                    "severus": 1.5
+                },
+                "TABIX_SV_VCF": {
+                    "tabix": 1.21
+                },
+                "Workflow": {
+                    "nf-core/pacsomatic": "v1.0.0dev"
+                }
+            },
+            [
+                "alignment",
+                "alignment/pbmm2",
+                "alignment/pbmm2/Patient_HG008_DS_MT_N",
+                "alignment/pbmm2/Patient_HG008_DS_MT_N/Patient_HG008_DS_MT_N.aligned.bam",
+                "alignment/pbmm2/Patient_HG008_DS_MT_N/Patient_HG008_DS_MT_N.aligned.bam.bai",
+                "alignment/pbmm2/Patient_HG008_DS_MT_T",
+                "alignment/pbmm2/Patient_HG008_DS_MT_T/Patient_HG008_DS_MT_T.aligned.bam",
+                "alignment/pbmm2/Patient_HG008_DS_MT_T/Patient_HG008_DS_MT_T.aligned.bam.bai",
+                "alignment/qc",
+                "alignment/qc/bamcoverage",
+                "alignment/qc/bamcoverage/Patient_HG008_DS_MT_N",
+                "alignment/qc/bamcoverage/Patient_HG008_DS_MT_N/Patient_HG008_DS_MT_N.bigWig",
+                "alignment/qc/bamcoverage/Patient_HG008_DS_MT_T",
+                "alignment/qc/bamcoverage/Patient_HG008_DS_MT_T/Patient_HG008_DS_MT_T.bigWig",
+                "alignment/qc/mosdepth",
+                "alignment/qc/mosdepth/Patient_HG008_DS_MT_N",
+                "alignment/qc/mosdepth/Patient_HG008_DS_MT_N/Patient_HG008_DS_MT_N.mosdepth.global.dist.txt",
+                "alignment/qc/mosdepth/Patient_HG008_DS_MT_N/Patient_HG008_DS_MT_N.mosdepth.summary.txt",
+                "alignment/qc/mosdepth/Patient_HG008_DS_MT_N/Patient_HG008_DS_MT_N.per-base.bed.gz",
+                "alignment/qc/mosdepth/Patient_HG008_DS_MT_N/Patient_HG008_DS_MT_N.per-base.bed.gz.csi",
+                "alignment/qc/mosdepth/Patient_HG008_DS_MT_T",
+                "alignment/qc/mosdepth/Patient_HG008_DS_MT_T/Patient_HG008_DS_MT_T.mosdepth.global.dist.txt",
+                "alignment/qc/mosdepth/Patient_HG008_DS_MT_T/Patient_HG008_DS_MT_T.mosdepth.summary.txt",
+                "alignment/qc/mosdepth/Patient_HG008_DS_MT_T/Patient_HG008_DS_MT_T.per-base.bed.gz",
+                "alignment/qc/mosdepth/Patient_HG008_DS_MT_T/Patient_HG008_DS_MT_T.per-base.bed.gz.csi",
+                "alignment/qc/samtools",
+                "alignment/qc/samtools/Patient_HG008_DS_MT_N",
+                "alignment/qc/samtools/Patient_HG008_DS_MT_N/Patient_HG008_DS_MT_N.flagstat",
+                "alignment/qc/samtools/Patient_HG008_DS_MT_N/Patient_HG008_DS_MT_N.idxstats",
+                "alignment/qc/samtools/Patient_HG008_DS_MT_N/Patient_HG008_DS_MT_N.stats",
+                "alignment/qc/samtools/Patient_HG008_DS_MT_T",
+                "alignment/qc/samtools/Patient_HG008_DS_MT_T/Patient_HG008_DS_MT_T.flagstat",
+                "alignment/qc/samtools/Patient_HG008_DS_MT_T/Patient_HG008_DS_MT_T.idxstats",
+                "alignment/qc/samtools/Patient_HG008_DS_MT_T/Patient_HG008_DS_MT_T.stats",
+                "genome",
+                "genome/MT.fa.fai",
+                "germline_snv",
+                "germline_snv/clair3",
+                "germline_snv/clair3/Patient_HG008_DS_MT_N",
+                "germline_snv/clair3/Patient_HG008_DS_MT_N/Patient_HG008_DS_MT_N_merge_output.vcf.gz",
+                "germline_snv/clair3/Patient_HG008_DS_MT_N/Patient_HG008_DS_MT_N_merge_output.vcf.gz.tbi",
+                "germline_snv/clair3/Patient_HG008_DS_MT_T",
+                "germline_snv/clair3/Patient_HG008_DS_MT_T/Patient_HG008_DS_MT_T_merge_output.vcf.gz",
+                "germline_snv/clair3/Patient_HG008_DS_MT_T/Patient_HG008_DS_MT_T_merge_output.vcf.gz.tbi",
+                "germline_snv/hiphase",
+                "germline_snv/hiphase/Patient_HG008_DS_MT_N",
+                "germline_snv/hiphase/Patient_HG008_DS_MT_N/Patient_HG008_DS_MT_N.phased.bam",
+                "germline_snv/hiphase/Patient_HG008_DS_MT_N/Patient_HG008_DS_MT_N.phased.bam.bai",
+                "germline_snv/hiphase/Patient_HG008_DS_MT_N/Patient_HG008_DS_MT_N.phased.vcf",
+                "germline_snv/hiphase/Patient_HG008_DS_MT_N/Patient_HG008_DS_MT_N.phased.vcf.tbi",
+                "germline_snv/hiphase/Patient_HG008_DS_MT_N/Patient_HG008_DS_MT_N.stats.csv",
+                "methylation",
+                "methylation/pb_cpg_tools",
+                "methylation/pb_cpg_tools/normal",
+                "methylation/pb_cpg_tools/normal/Patient_HG008_DS_MT_N",
+                "methylation/pb_cpg_tools/normal/Patient_HG008_DS_MT_N/Patient_HG008_DS_MT_N.combined.bed.gz",
+                "methylation/pb_cpg_tools/normal/Patient_HG008_DS_MT_N/Patient_HG008_DS_MT_N.combined.bed.gz.tbi",
+                "methylation/pb_cpg_tools/normal/Patient_HG008_DS_MT_N/Patient_HG008_DS_MT_N.combined.bw",
+                "methylation/pb_cpg_tools/tumor",
+                "methylation/pb_cpg_tools/tumor/Patient_HG008_DS_MT_T_vs_DS_MT_N",
+                "methylation/pb_cpg_tools/tumor/Patient_HG008_DS_MT_T_vs_DS_MT_N/Patient_HG008_DS_MT_T_vs_DS_MT_N.combined.bed.gz",
+                "methylation/pb_cpg_tools/tumor/Patient_HG008_DS_MT_T_vs_DS_MT_N/Patient_HG008_DS_MT_T_vs_DS_MT_N.combined.bed.gz.tbi",
+                "methylation/pb_cpg_tools/tumor/Patient_HG008_DS_MT_T_vs_DS_MT_N/Patient_HG008_DS_MT_T_vs_DS_MT_N.combined.bw",
+                "multiqc",
+                "multiqc/multiqc_data",
+                "multiqc/multiqc_data/mosdepth-coverage-per-contig-single.txt",
+                "multiqc/multiqc_data/mosdepth-cumcoverage-dist-id.txt",
+                "multiqc/multiqc_data/mosdepth_cov_dist.txt",
+                "multiqc/multiqc_data/mosdepth_cumcov_dist.txt",
+                "multiqc/multiqc_data/mosdepth_perchrom.txt",
+                "multiqc/multiqc_data/multiqc.log",
+                "multiqc/multiqc_data/multiqc_citations.txt",
+                "multiqc/multiqc_data/multiqc_data.json",
+                "multiqc/multiqc_data/multiqc_general_stats.txt",
+                "multiqc/multiqc_data/multiqc_samtools_flagstat.txt",
+                "multiqc/multiqc_data/multiqc_samtools_idxstats.txt",
+                "multiqc/multiqc_data/multiqc_samtools_stats.txt",
+                "multiqc/multiqc_data/multiqc_software_versions.txt",
+                "multiqc/multiqc_data/multiqc_sources.txt",
+                "multiqc/multiqc_data/samtools-flagstat-dp_Percentage_of_total.txt",
+                "multiqc/multiqc_data/samtools-flagstat-dp_Read_counts.txt",
+                "multiqc/multiqc_data/samtools-idxstats-mapped-reads-plot_Normalised_Counts.txt",
+                "multiqc/multiqc_data/samtools-idxstats-mapped-reads-plot_Observed_over_Expected_Counts.txt",
+                "multiqc/multiqc_data/samtools-idxstats-mapped-reads-plot_Raw_Counts.txt",
+                "multiqc/multiqc_data/samtools-stats-dp.txt",
+                "multiqc/multiqc_data/samtools_alignment_plot.txt",
+                "multiqc/multiqc_plots",
+                "multiqc/multiqc_plots/pdf",
+                "multiqc/multiqc_plots/pdf/general_stats_table.pdf",
+                "multiqc/multiqc_plots/pdf/mosdepth-coverage-per-contig-single-cnt.pdf",
+                "multiqc/multiqc_plots/pdf/mosdepth-coverage-per-contig-single-pct.pdf",
+                "multiqc/multiqc_plots/pdf/mosdepth-cumcoverage-dist-id.pdf",
+                "multiqc/multiqc_plots/pdf/samtools-flagstat-dp_Percentage_of_total.pdf",
+                "multiqc/multiqc_plots/pdf/samtools-flagstat-dp_Read_counts.pdf",
+                "multiqc/multiqc_plots/pdf/samtools-idxstats-mapped-reads-plot_Normalised_Counts-cnt.pdf",
+                "multiqc/multiqc_plots/pdf/samtools-idxstats-mapped-reads-plot_Normalised_Counts-log.pdf",
+                "multiqc/multiqc_plots/pdf/samtools-idxstats-mapped-reads-plot_Observed_over_Expected_Counts-cnt.pdf",
+                "multiqc/multiqc_plots/pdf/samtools-idxstats-mapped-reads-plot_Observed_over_Expected_Counts-log.pdf",
+                "multiqc/multiqc_plots/pdf/samtools-idxstats-mapped-reads-plot_Raw_Counts-cnt.pdf",
+                "multiqc/multiqc_plots/pdf/samtools-idxstats-mapped-reads-plot_Raw_Counts-log.pdf",
+                "multiqc/multiqc_plots/pdf/samtools-stats-dp.pdf",
+                "multiqc/multiqc_plots/pdf/samtools_alignment_plot-cnt.pdf",
+                "multiqc/multiqc_plots/pdf/samtools_alignment_plot-pct.pdf",
+                "multiqc/multiqc_plots/png",
+                "multiqc/multiqc_plots/png/general_stats_table.png",
+                "multiqc/multiqc_plots/png/mosdepth-coverage-per-contig-single-cnt.png",
+                "multiqc/multiqc_plots/png/mosdepth-coverage-per-contig-single-pct.png",
+                "multiqc/multiqc_plots/png/mosdepth-cumcoverage-dist-id.png",
+                "multiqc/multiqc_plots/png/samtools-flagstat-dp_Percentage_of_total.png",
+                "multiqc/multiqc_plots/png/samtools-flagstat-dp_Read_counts.png",
+                "multiqc/multiqc_plots/png/samtools-idxstats-mapped-reads-plot_Normalised_Counts-cnt.png",
+                "multiqc/multiqc_plots/png/samtools-idxstats-mapped-reads-plot_Normalised_Counts-log.png",
+                "multiqc/multiqc_plots/png/samtools-idxstats-mapped-reads-plot_Observed_over_Expected_Counts-cnt.png",
+                "multiqc/multiqc_plots/png/samtools-idxstats-mapped-reads-plot_Observed_over_Expected_Counts-log.png",
+                "multiqc/multiqc_plots/png/samtools-idxstats-mapped-reads-plot_Raw_Counts-cnt.png",
+                "multiqc/multiqc_plots/png/samtools-idxstats-mapped-reads-plot_Raw_Counts-log.png",
+                "multiqc/multiqc_plots/png/samtools-stats-dp.png",
+                "multiqc/multiqc_plots/png/samtools_alignment_plot-cnt.png",
+                "multiqc/multiqc_plots/png/samtools_alignment_plot-pct.png",
+                "multiqc/multiqc_plots/svg",
+                "multiqc/multiqc_plots/svg/general_stats_table.svg",
+                "multiqc/multiqc_plots/svg/mosdepth-coverage-per-contig-single-cnt.svg",
+                "multiqc/multiqc_plots/svg/mosdepth-coverage-per-contig-single-pct.svg",
+                "multiqc/multiqc_plots/svg/mosdepth-cumcoverage-dist-id.svg",
+                "multiqc/multiqc_plots/svg/samtools-flagstat-dp_Percentage_of_total.svg",
+                "multiqc/multiqc_plots/svg/samtools-flagstat-dp_Read_counts.svg",
+                "multiqc/multiqc_plots/svg/samtools-idxstats-mapped-reads-plot_Normalised_Counts-cnt.svg",
+                "multiqc/multiqc_plots/svg/samtools-idxstats-mapped-reads-plot_Normalised_Counts-log.svg",
+                "multiqc/multiqc_plots/svg/samtools-idxstats-mapped-reads-plot_Observed_over_Expected_Counts-cnt.svg",
+                "multiqc/multiqc_plots/svg/samtools-idxstats-mapped-reads-plot_Observed_over_Expected_Counts-log.svg",
+                "multiqc/multiqc_plots/svg/samtools-idxstats-mapped-reads-plot_Raw_Counts-cnt.svg",
+                "multiqc/multiqc_plots/svg/samtools-idxstats-mapped-reads-plot_Raw_Counts-log.svg",
+                "multiqc/multiqc_plots/svg/samtools-stats-dp.svg",
+                "multiqc/multiqc_plots/svg/samtools_alignment_plot-cnt.svg",
+                "multiqc/multiqc_plots/svg/samtools_alignment_plot-pct.svg",
+                "multiqc/multiqc_report.html",
+                "pipeline_info",
+                "pipeline_info/nf_core_pacsomatic_software_mqc_versions.yml",
+                "somatic_snv",
+                "somatic_snv/deepsomatic",
+                "somatic_snv/deepsomatic/Patient_HG008_DS_MT_T_vs_DS_MT_N",
+                "somatic_snv/deepsomatic/Patient_HG008_DS_MT_T_vs_DS_MT_N/Patient_HG008_DS_MT_T_vs_DS_MT_N.g.vcf.gz",
+                "somatic_snv/deepsomatic/Patient_HG008_DS_MT_T_vs_DS_MT_N/Patient_HG008_DS_MT_T_vs_DS_MT_N.g.vcf.gz.tbi",
+                "somatic_snv/deepsomatic/Patient_HG008_DS_MT_T_vs_DS_MT_N/Patient_HG008_DS_MT_T_vs_DS_MT_N.vcf.gz",
+                "somatic_snv/deepsomatic/Patient_HG008_DS_MT_T_vs_DS_MT_N/Patient_HG008_DS_MT_T_vs_DS_MT_N.vcf.gz.tbi",
+                "somatic_snv/hiphase_somatic",
+                "somatic_snv/hiphase_somatic/Patient_HG008_DS_MT_T_vs_DS_MT_N",
+                "somatic_snv/hiphase_somatic/Patient_HG008_DS_MT_T_vs_DS_MT_N/Patient_HG008_DS_MT_T_vs_DS_MT_N.germline_phased.vcf",
+                "somatic_snv/hiphase_somatic/Patient_HG008_DS_MT_T_vs_DS_MT_N/Patient_HG008_DS_MT_T_vs_DS_MT_N.phased.bam",
+                "somatic_snv/hiphase_somatic/Patient_HG008_DS_MT_T_vs_DS_MT_N/Patient_HG008_DS_MT_T_vs_DS_MT_N.phased.bam.bai",
+                "somatic_snv/hiphase_somatic/Patient_HG008_DS_MT_T_vs_DS_MT_N/Patient_HG008_DS_MT_T_vs_DS_MT_N.somatic_phased.vcf",
+                "somatic_snv/hiphase_somatic/Patient_HG008_DS_MT_T_vs_DS_MT_N/Patient_HG008_DS_MT_T_vs_DS_MT_N.stats.csv",
+                "somatic_sv",
+                "somatic_sv/severus",
+                "somatic_sv/severus/Patient_HG008_DS_MT_T_vs_DS_MT_N",
+                "somatic_sv/severus/Patient_HG008_DS_MT_T_vs_DS_MT_N/orig",
+                "somatic_sv/severus/Patient_HG008_DS_MT_T_vs_DS_MT_N/orig/Patient_HG008_DS_MT_T_vs_DS_MT_N.vcf.gz",
+                "somatic_sv/severus/Patient_HG008_DS_MT_T_vs_DS_MT_N/orig/Patient_HG008_DS_MT_T_vs_DS_MT_N.vcf.gz.tbi",
+                "somatic_sv/severus/Patient_HG008_DS_MT_T_vs_DS_MT_N/orig/Patient_HG008_DS_MT_T_vs_DS_MT_N_severus",
+                "somatic_sv/severus/Patient_HG008_DS_MT_T_vs_DS_MT_N/orig/Patient_HG008_DS_MT_T_vs_DS_MT_N_severus/all_SVs",
+                "somatic_sv/severus/Patient_HG008_DS_MT_T_vs_DS_MT_N/orig/Patient_HG008_DS_MT_T_vs_DS_MT_N_severus/all_SVs/severus_all.vcf",
+                "somatic_sv/severus/Patient_HG008_DS_MT_T_vs_DS_MT_N/orig/Patient_HG008_DS_MT_T_vs_DS_MT_N_severus/breakpoints_double.csv",
+                "somatic_sv/severus/Patient_HG008_DS_MT_T_vs_DS_MT_N/orig/Patient_HG008_DS_MT_T_vs_DS_MT_N_severus/read_qual.txt",
+                "somatic_sv/severus/Patient_HG008_DS_MT_T_vs_DS_MT_N/orig/Patient_HG008_DS_MT_T_vs_DS_MT_N_severus/severus.log",
+                "somatic_sv/severus/Patient_HG008_DS_MT_T_vs_DS_MT_N/orig/Patient_HG008_DS_MT_T_vs_DS_MT_N_severus/somatic_SVs",
+                "somatic_sv/severus/Patient_HG008_DS_MT_T_vs_DS_MT_N/orig/Patient_HG008_DS_MT_T_vs_DS_MT_N_severus/somatic_SVs/severus_somatic.vcf"
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.04.6"
+        },
+        "timestamp": "2026-01-09T15:12:51.979941303"
+    },
+    "alignment": {
+        "content": [
+            {
+                "Patient_HG008_DS_MT_N": "afe62c3471d72c70577cd5501494d02d",
+                "Patient_HG008_DS_MT_T": "5b130579f7bac03fbbae31290b12fe41"
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.04.6"
+        },
+        "timestamp": "2026-01-09T15:12:51.994061257"
+    }
+}
