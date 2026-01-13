@@ -31,7 +31,7 @@ The pipeline performs comprehensive somatic analysis including:
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow manager to run tasks across multiple compute infrastructures in a portable, reproducible manner. It is designed following the [nf-core](https://nf-co.re/) community's best practices and utilizes containerization with Docker, Singularity, or Conda for dependency management.
 
 <p align="center">
-    <img src="https://github.com/stjudecab/pacsomatic/blob/dev_wen/docs/images/Pacsomatic_workflow_beta.png" alt="nf-core/pacsomatic workflow overview" width="80%"/>
+    <img src="https://github.com/stjudecab/pacsomatic/blob/dev/docs/images/Pacsomatic_workflow_beta.png" alt="nf-core/pacsomatic workflow overview" width="80%"/>
 </p>
 
 ## Pipeline Overview
