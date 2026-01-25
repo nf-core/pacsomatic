@@ -108,9 +108,10 @@ def validateSamplesheet(samplesheet) {
     def errors = []
 
     samplesheet.each { row ->
-        def patient = row.patient
-        def sample = row.sample
-        def status = row.status
+        def (meta, _bam, _pbi) = row
+        def patient = meta.patient
+        def sample = meta.sample
+        def status = meta.status
 
         // Track samples per patient
         if (!patients.containsKey(patient)) {
