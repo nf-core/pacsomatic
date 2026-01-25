@@ -2,9 +2,9 @@
 
 ## Introduction
 
-This document describes the output produced by the Nextflow pipeline-nfcore/pacsomatic. Results will be stored in the directory specified during pipeline execution with the parameter: --outdir <OUTDIR>.
+This document describes the output produced by the nf-core/pacsomatic pipeline. Results will be stored in the directory specified during pipeline execution with the parameter `--outdir <OUTDIR>`.
 
-After the pipeline execution finishes, the output directory (<OUTDIR>) will contain several organized subdirectories, described below. All paths mentioned here are relative to the top-level output directory.
+After the pipeline execution finishes, the output directory will contain several organized subdirectories, described below. All paths mentioned here are relative to the top-level output directory.
 
 ## Pipeline overview
 
@@ -14,7 +14,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 - [Alignment QC](#alignment-qc) - Calculate the QC metrics of each alignment
    - [BAM_COVERAGE](#bam_coverage) - Generate the coverage tracks for each alignment
    - [MOSDEPTH](#mosdepth) - Calculate BAM depth for each alignment
-   - [BAM_SORT_STATUS_SAMTOOLS](#bam_sort_status_samtools) - Use samtools sort/index/stats/flagstat for each alignment
+   - [BAM_SORT_STATS_SAMTOOLS](#bam_sort_stats_samtools) - Use SAMtools sort/index/stats/flagstat for each alignment
 - [Methylation Detection and Annotation](#methylation-detection-and-annotation) - Calculate CpG methylation for each alignment and detect and annotate the Differential Methylation Regions for tumor-normal pair
    - [Clair3](#clair3) - Germline SNV-INDEL variant calling for all samples
    - [HiPhase](#hiphase) - Phase VCF and BAM files for normal samples
@@ -38,7 +38,6 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
    - [AMBER](#amber) - Use hmftools-AMBER to analyze tumor-normal BAM pair to generate tumor BAF
    - [COBALT](#cobalt) - Use hmftools-COBALT to analyze tumor-normal BAM pair to determine the read depth ratio of the tumor against reference
    - [PURPLE](#purple) - Use hmftools-PURPLE to combine the BAF from AMBER and read depth ratio from COBALT to estimate tumor purity and ploid
-- [FastQC](#fastqc) - Raw read QC
 - [MultiQC](#multiqc) - Aggregate report describing results and QC from the whole pipeline
 - [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
 
@@ -125,7 +124,8 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 
 [mosdepth](https://github.com/brentp/mosdepth) calculates depth coverage statistics for each alignment.
 
-### BAM_SORT_STATUS_SAMTOOLS
+### BAM_SORT_STATS_SAMTOOLS
+<a id="bam_sort_stats_samtools"></a>
 
 <details markdown="1">
 <summary>Output files</summary>
@@ -378,7 +378,7 @@ This analysis is performed separately for tumor and normal samples.
 
 [CHORD](https://github.com/UMCUGenetics/CHORD) estimates homologous recombination deficiency from mutational signatures.
 
-## Tumor purity and ploid estimation
+## Tumor Purity and Ploidy Estimation
 
 ### AMBER
 <a id="amber"></a>
@@ -442,22 +442,6 @@ This analysis is performed separately for tumor and normal samples.
 </details>
 
 [PURPLE](https://github.com/hartwigmedical/hmftools/tree/master/purple) estimates tumor purity and ploidy by combining AMBER and COBALT results.
-
-### FastQC
-<a id="fastqc"></a>
-
-
-
-<details markdown="1">
-<summary>Output files</summary>
-
-- `fastqc/`
-  - `*_fastqc.html`: FastQC report containing quality metrics.
-  - `*_fastqc.zip`: Zip archive containing the FastQC report, tab-delimited data file and plot images.
-
-</details>
-
-[FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) gives general quality metrics about your sequenced reads. It provides information about the quality score distribution across your reads, per base sequence content (%A/T/G/C), adapter contamination and overrepresented sequences. For further reading and documentation see the [FastQC help pages](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/).
 
 ### MultiQC
 <a id="multiqc"></a>

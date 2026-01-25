@@ -6,7 +6,7 @@
 
 ## Introduction
 
-<!-- TODO nf-core: Add documentation about anything specific to running your pipeline. For general topics, please point to (and add to) the main nf-core website. -->
+nf-core/pacsomatic is a bioinformatics pipeline for comprehensive somatic variant analysis from PacBio HiFi sequencing data. It takes matched tumor-normal PacBio HiFi BAM files as input and performs alignment, variant calling (SNVs, indels, SVs, CNVs), methylation analysis, and tumor characterization.
 
 ## Samplesheet input
 
@@ -29,10 +29,12 @@ You will need to create a samplesheet with information about the samples you wou
 patient,sample,status,bam
 Patient1,Sample1_Tumor,1,P1_s1_tumor.bam
 Patient1,Sample1_Normal,0,P1_s1_normal.bam
-Patient1,Sample2_Tumor,1,P1_s1_tumor.bam
-Patient1,Sample2_Normal,0,P1_s1_normal.bam
+Patient1,Sample2_Tumor,1,P1_s2_tumor.bam
+Patient1,Sample2_Normal,0,P1_s2_normal.bam
 ```
-> **Note:** Spaces in pateint and sample names will automatically be converted to underscores (`_`) by the pipeline to prevent
+
+> [!NOTE]
+> Patient and sample names cannot contain spaces. If spaces are present, they will be rejected during samplesheet validation.
 
 ## Running the pipeline
 

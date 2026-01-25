@@ -10,13 +10,106 @@
 
 ## Pipeline tools
 
-- [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
+### Alignment
 
-> Andrews, S. (2010). FastQC: A Quality Control Tool for High Throughput Sequence Data [Online].
+- [pbmm2](https://github.com/PacificBiosciences/pbmm2) [Software]
+
+  > PacBio pbmm2 - A minimap2 frontend for PacBio native data formats.
+
+- [SAMtools](https://pubmed.ncbi.nlm.nih.gov/19505943/)
+
+  > Li H, Handsaker B, Wysoker A, Fennell T, Ruan J, Homer N, Marth G, Abecasis G, Durbin R; 1000 Genome Project Data Processing Subgroup. The Sequence Alignment/Map format and SAMtools. Bioinformatics. 2009 Aug 15;25(16):2078-9. doi: 10.1093/bioinformatics/btp352. PubMed PMID: 19505943; PubMed Central PMCID: PMC2723002.
+
+### Quality Control
+
+- [mosdepth](https://pubmed.ncbi.nlm.nih.gov/29096012/)
+
+  > Pedersen BS, Quinlan AR. Mosdepth: quick coverage calculation for genomes and exomes. Bioinformatics. 2018 Mar 1;34(5):867-868. doi: 10.1093/bioinformatics/btx699. PubMed PMID: 29096012; PubMed Central PMCID: PMC6030888.
+
+- [deepTools](https://pubmed.ncbi.nlm.nih.gov/27079975/)
+
+  > Ramírez F, Ryan DP, Grüning B, Bhardwaj V, Kilpert F, Richter AS, Heyne S, Dündar F, Manke T. deepTools2: a next generation web server for deep-sequencing data analysis. Nucleic Acids Res. 2016 Jul 8;44(W1):W160-5. doi: 10.1093/nar/gkw257. PubMed PMID: 27079975; PubMed Central PMCID: PMC4987876.
 
 - [MultiQC](https://pubmed.ncbi.nlm.nih.gov/27312411/)
 
-> Ewels P, Magnusson M, Lundin S, Käller M. MultiQC: summarize analysis results for multiple tools and samples in a single report. Bioinformatics. 2016 Oct 1;32(19):3047-8. doi: 10.1093/bioinformatics/btw354. Epub 2016 Jun 16. PubMed PMID: 27312411; PubMed Central PMCID: PMC5039924.
+  > Ewels P, Magnusson M, Lundin S, Käller M. MultiQC: summarize analysis results for multiple tools and samples in a single report. Bioinformatics. 2016 Oct 1;32(19):3047-8. doi: 10.1093/bioinformatics/btw354. PubMed PMID: 27312411; PubMed Central PMCID: PMC5039924.
+
+### Germline Variant Calling
+
+- [Clair3](https://pubmed.ncbi.nlm.nih.gov/38177392/)
+
+  > Zheng Z, Li S, Su J, Leung AW, Lam TW, Luo R. Symphonizing pileup and full-alignment for deep learning-based long-read variant calling. Nat Comput Sci. 2022 Dec;2(12):797-803. doi: 10.1038/s43588-022-00387-x. PubMed PMID: 38177392.
+
+- [HiPhase](https://github.com/PacificBiosciences/HiPhase)
+
+  > PacBio HiPhase - A phasing tool for PacBio HiFi reads [Software].
+
+### Somatic Variant Calling
+
+- [DeepSomatic](https://www.biorxiv.org/content/10.1101/2024.08.16.608331)
+
+  > Sahraeian SME, et al. DeepSomatic: Accurate somatic small variant calling for whole genome sequencing. bioRxiv. 2024. doi: 10.1101/2024.08.16.608331.
+
+- [Severus](https://www.biorxiv.org/content/10.1101/2024.03.22.586252)
+
+  > Keskus, A.G., Bryant, A., Ahmad, T. et al. Severus detects somatic structural variation and complex rearrangements in cancer genomes using long-read sequencing. Nat Biotechnol (2025). https://doi.org/10.1038/s41587-025-02618-8. Pubmed PMID: 40185952 Pubmed Central PMCID: PMC12483193
+
+- [CNVkit](https://pubmed.ncbi.nlm.nih.gov/27100738/)
+
+  > Talevich E, Shain AH, Botton T, Bastian BC. CNVkit: Genome-Wide Copy Number Detection and Visualization from Targeted DNA Sequencing. PLoS Comput Biol. 2016 Apr 21;12(4):e1004873. doi: 10.1371/journal.pcbi.1004873. PubMed PMID: 27100738; PubMed Central PMCID: PMC4839673.
+
+### Variant Annotation
+
+- [Ensembl VEP](https://pubmed.ncbi.nlm.nih.gov/27268795/)
+
+  > McLaren W, Gil L, Hunt SE, Riat HS, Ritchie GR, Thormann A, Flicek P, Cunningham F. The Ensembl Variant Effect Predictor. Genome Biol. 2016 Jun 6;17(1):122. doi: 10.1186/s13059-016-0974-4. PubMed PMID: 27268795; PubMed Central PMCID: PMC4893825.
+
+- [svpack](https://github.com/PacificBiosciences/svpack)
+
+  > PacBio svpack - Structural variant filtering and annotation tool [Software].
+
+- [AnnotSV](https://pubmed.ncbi.nlm.nih.gov/29669011/)
+
+  > Geoffroy V, Herber S, Alvarez A, Velt A, Fiack P, Muller J, Stoetzel C, Piton A, Dollfus H. AnnotSV: an integrated tool for structural variations annotation. Bioinformatics. 2018 Oct 15;34(20):3572-3574. doi: 10.1093/bioinformatics/bty304. PubMed PMID: 29669011.
+
+### Methylation Analysis
+
+- [pb-CpG-tools](https://github.com/PacificBiosciences/pb-CpG-tools)
+
+  > PacBio pb-CpG-tools - A tool for extracting CpG methylation from PacBio HiFi reads [Software].
+
+- [DSS](https://pubmed.ncbi.nlm.nih.gov/24561809/)
+
+  > Feng H, Conneely KN, Wu H. A Bayesian hierarchical model to detect differentially methylated loci from single nucleotide resolution sequencing data. Nucleic Acids Res. 2014 Apr;42(8):e69. doi: 10.1093/nar/gku154. PubMed PMID: 24561809; PubMed Central PMCID: PMC4005660.
+
+- [annotatr](https://pubmed.ncbi.nlm.nih.gov/28369316/)
+
+  > Cavalcante RG, Sartor MA. annotatr: genomic regions in context. Bioinformatics. 2017 Aug 1;33(15):2381-2383. doi: 10.1093/bioinformatics/btx183. PubMed PMID: 28369316; PubMed Central PMCID: PMC5860117.
+
+### Tumor Characterization
+
+- [AMBER](https://github.com/hartwigmedical/hmftools/tree/master/amber)
+
+  > Hartwig Medical Foundation. AMBER - Allele frequency analysis for tumor purity estimation [Software].
+
+- [COBALT](https://github.com/hartwigmedical/hmftools/tree/master/cobalt)
+
+  > Hartwig Medical Foundation. COBALT - Read depth ratio analysis for copy number detection [Software].
+
+- [PURPLE](https://github.com/hartwigmedical/hmftools/blob/master/purple)
+
+  > Hartwig Medical Foundation. PURPLE - a purity ploidy estimator primarily designed for whole genome sequenced (WGS) data [Software].
+
+
+### Mutational Signature Analysis
+
+- [MutationalPatterns](https://pubmed.ncbi.nlm.nih.gov/29695279/)
+
+  > Blokzijl F, Janssen R, van Boxtel R, Cuppen E. MutationalPatterns: comprehensive genome-wide analysis of mutational processes. Genome Med. 2018 Apr 25;10(1):33. doi: 10.1186/s13073-018-0539-0. PubMed PMID: 29695279; PubMed Central PMCID: PMC5922316.
+
+- [CHORD](https://pubmed.ncbi.nlm.nih.gov/33149131/)
+
+  > Nguyen L, W M Martens J, Van Hoeck A, Cuppen E. Pan-cancer landscape of homologous recombination deficiency. Nat Commun. 2020 Jul 30;11(1):5584. doi: 10.1038/s41467-020-19406-4. PubMed PMID: 33149131; PubMed Central PMCID: PMC7643118.
 
 ## Software packaging/containerisation tools
 

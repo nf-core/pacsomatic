@@ -31,18 +31,18 @@ The pipeline performs comprehensive somatic analysis including:
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow manager to run tasks across multiple compute infrastructures in a portable, reproducible manner. It is designed following the [nf-core](https://nf-co.re/) community's best practices and utilizes containerization with Docker, Singularity, or Conda for dependency management.
 
 <p align="center">
-    <img src="https://github.com/stjudecab/pacsomatic/blob/dev/docs/images/Pacsomatic_workflow_beta.png" alt="nf-core/pacsomatic workflow overview" width="80%"/>
+    <img src="docs/images/Pacsomatic_workflow_beta.png" alt="nf-core/pacsomatic workflow overview" width="100%"/>
 </p>
 
 ## Pipeline Overview
 
 The pipeline performs the following steps:
 
-### 1. Quality Control and Alignment
-- Read quality control ([FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/), [MultiQC](http://multiqc.info/))
+### 1. Alignment and Quality Control
 - Read alignment to reference genome ([pbmm2](https://github.com/PacificBiosciences/pbmm2))
-- Alignment sorting and indexing ([SAMtools](https://sourceforge.net/projects/samtools/files/samtools/))
-- Alignment quality assessment ([bamCoverage](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html), [mosdepth](https://github.com/brentp/mosdepth))
+- Alignment sorting and indexing ([SAMtools](https://www.htslib.org/doc/samtools.html))
+- Coverage analysis ([bamCoverage](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html), [mosdepth](https://github.com/brentp/mosdepth))
+- Aggregated quality reporting ([MultiQC](http://multiqc.info/))
 
 ### 2. Variant Calling
 - **Germline SNVs**: [Clair3](https://github.com/HKU-BAL/Clair3)
@@ -156,7 +156,7 @@ To view example results from a full-size test dataset, visit the [results page](
 
 ## Credits
 
-nf-core/pacsomatic was originally written by Wenchao Zhang and Haidong Yi.
+nf-core/pacsomatic was originally written by Wenchao Zhang (@wzhang42) and Haidong Yi (@haidyi).
 
 We thank the following people for their extensive assistance in the development of this pipeline:
 
@@ -168,10 +168,11 @@ For further information or help, don't hesitate to get in touch on the [Slack `#
 
 ## Citations
 
-<!-- TODO nf-core: Add citation for pipeline after first release. Uncomment lines below and update Zenodo doi and badge at the top of this file. -->
-<!-- If you use nf-core/pacsomatic for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX) -->
+<!-- If you use nf-core/pacsomatic for your analysis, please cite it as follows:
 
-<!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
+> **nf-core/pacsomatic: A Nextflow pipeline for comprehensive somatic variant analysis from PacBio HiFi sequencing data.**
+>
+> Zhang W, Yi H, et al. -->
 
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 
