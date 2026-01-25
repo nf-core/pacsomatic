@@ -1,0 +1,112 @@
+name: "mutationalpattern"
+description: Module that uses MutationalPatterns R package to analyze mutational signatures from VCF files
+keywords:
+  - mutation
+  - signatures
+  - cancer
+  - genomics
+  - vcf
+tools:
+  - "mutationalpattern":
+      description: "An R/Bioconductor package for extracting and visualizing mutational patterns in base substitution catalogues"
+      homepage: "https://bioconductor.org/packages/release/bioc/html/MutationalPatterns.html"
+      documentation: "https://bioconductor.org/packages/release/bioc/vignettes/MutationalPatterns/inst/doc/Introduction_to_MutationalPatterns.html"
+      tool_dev_url: "https://github.com/UMCUGenetics/MutationalPatterns"
+      doi: "10.18129/B9.bioc.MutationalPatterns"
+      licence: ["MIT"]
+
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ id:'sample1' ]`
+    - vcf:
+        type: file
+        description: VCF file containing variants
+        pattern: "*.{vcf,vcf.gz}"
+        ontologies:
+          - edam: "http://edamontology.org/format_3016" # VCF
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing reference genome information
+    - ref_genome:
+        type: string
+        description: Reference genome package name for BSgenome
+  - - max_delta:
+        type: string
+        description: Maximum delta parameter for signature fitting
+output:
+  mut_sig:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1' ]`
+      - "*.mut_sigs.tsv":
+          type: file
+          description: Tab-separated file containing mutational signatures contribution
+          pattern: "*.mut_sigs.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  recon_sig:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1' ]`
+      - "*.reconstructed_sigs.tsv":
+          type: file
+          description: Tab-separated file containing reconstructed signatures
+          pattern: "*.reconstructed_sigs.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  type:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1' ]`
+      - "*.type_occurences.tsv":
+          type: file
+          description: Tab-separated file containing mutation type occurrences
+          pattern: "*.type_occurences.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  mut_sig_boot:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1' ]`
+      - "*.mut_sigs_bootstrapped.tsv":
+          type: file
+          description: Tab-separated file containing bootstrapped mutational signatures
+          pattern: "*.mut_sigs_bootstrapped.tsv"
+          ontologies:
+            - edam: "http://edamontology.org/format_3475" # TSV
+  mut_profile:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1' ]`
+      - "*.mutation_profile.pdf":
+          type: file
+          description: PDF file containing mutation profile plots
+          pattern: "*.mutation_profile.pdf"
+          ontologies:
+            - edam: "http://edamontology.org/format_3508" # PDF
+  versions:
+    - "versions.yml":
+        type: file
+        description: File containing software versions
+        pattern: "versions.yml"
+        ontologies:
+          - edam: "http://edamontology.org/format_3750" # YAML
+
+authors:
+  - "@haidyi"
+maintainers:
+  - "@haidyi"

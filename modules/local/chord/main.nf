@@ -1,0 +1,60 @@
+process CHORD {
+    tag "${meta.id}"
+    label 'process_low'
+
+    conda "${moduleDir}/environment.yml"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/hmftools-chord:2.1.2--hdfd78af_0' :
+        'biocontainers/hmftools-chord:2.1.2--hdfd78af_0' }"
+
+    input:
+    tuple val(meta), path(smlv_vcf), path(sv_vcf)
+    path genome_fasta
+    path genome_fai
+    path genome_dict
+
+    output:
+    tuple val(meta), path("*.mutation_contexts.tsv"), emit: mutation
+    tuple val(meta), path("*.prediction.tsv"), emit: prediction
+    path 'versions.yml', emit: versions
+
+    when:
+    task.ext.when == null || task.ext.when
+
+    script:
+    def args = task.ext.args ?: ''
+    def prefix = task.ext.prefix ?: "${meta.id}"
+    def xmx_mod = task.ext.xmx_mod ?: 0.95
+    def log_level_arg = task.ext.log_level ? "-log_level ${task.ext.log_level}" : ''
+    """
+    ## NOTE(LN): The CHORD jar runs an embedded R script using 'com.hartwig.hmftools.common.utils.r.RExecutor' which requires absolute
+    ## paths. Relative paths don't work because RExecutor executes from a tmp dir, and not the working dir of this nextflow process
+
+    chord \\
+        -Xmx${Math.round(task.memory.bytes * xmx_mod)} \\
+        ${args} \\
+        -sample ${prefix} \\
+        -snv_indel_vcf_file ${smlv_vcf} \\
+        -sv_vcf_file ${sv_vcf} \\
+        -ref_genome ${genome_fasta} \\
+        ${log_level_arg} \\
+        -output_dir .
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        chord: \$(chord -version | sed -n '/^CHORD version/ { s/^.* //p }')
+    END_VERSIONS
+    """
+
+    stub:
+    def prefix = task.ext.prefix ?: "${meta.id}"
+    """
+    touch ${prefix}.chord.mutation_contexts.tsv
+    touch ${prefix}.chord.prediction.tsv
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        chord: \$(chord -version | sed -n '/^CHORD version/ { s/^.* //p }')
+    END_VERSIONS
+    """
+}

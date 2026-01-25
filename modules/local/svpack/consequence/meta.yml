@@ -1,0 +1,59 @@
+name: "svpack_consequence"
+description: Annotate structural variants with gene consequences using GFF3 annotations
+keywords:
+  - structural variants
+  - sv
+  - vcf
+  - annotation
+  - consequence
+  - gene
+  - gff3
+tools:
+  - svpack:
+      description: Tools for filtering, comparing, and annotating structural variant (SV) calls in VCF format
+      homepage: https://github.com/PacificBiosciences/svpack
+      documentation: https://github.com/PacificBiosciences/svpack
+      tool_dev_url: https://github.com/PacificBiosciences/svpack
+      licence: ["BSD-3-Clause-Clear"]
+
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - vcf:
+        type: file
+        description: Input VCF or VCF.GZ file containing structural variants
+        pattern: "*.{vcf,vcf.gz}"
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map containing reference information
+          e.g. [ id:'GRCh38' ]
+    - gff:
+        type: file
+        description: Gene annotation file in GFF3 format
+        pattern: "*.{gff,gff3}"
+
+output:
+  vcf:
+    - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', single_end:false ]
+    - "*.consequence.vcf":
+        type: file
+        description: Annotated VCF file with BCSQ INFO tag
+        pattern: "*.consequence.vcf"
+  versions:
+    - "versions.yml":
+        type: file
+        description: File containing software versions
+        pattern: "versions.yml"
+
+authors:
+  - "@haidyi"
+maintainers:
+  - "@haidyi"

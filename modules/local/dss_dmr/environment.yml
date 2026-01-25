@@ -1,0 +1,9 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/environment-schema.json
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bioconda::bioconductor-bsseq=1.38.0
+  - bioconda::bioconductor-dss=2.54.0
+  - conda-forge::r-data.table=1.15.4

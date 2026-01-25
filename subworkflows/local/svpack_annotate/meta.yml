@@ -1,0 +1,117 @@
+name: "svpack_annotate"
+description: Complete annotation pipeline for structural variants using SVPACK tools
+keywords:
+  - structural variants
+  - vcf
+  - annotation
+  - filtering
+  - matching
+  - consequence
+  - zygosity
+
+components:
+  - svpack/filter
+  - svpack/match
+  - svpack/consequence
+  - svpack/tagzygosity
+  - tabix/bgziptabix
+
+input:
+  - ch_vcf:
+      description: Channel with input VCF files containing structural variants
+      structure:
+        - meta:
+            type: map
+            description: Metadata map
+        - vcf:
+            type: file
+            description: Input VCF file
+            pattern: "*.{vcf,vcf.gz}"
+  - ch_vcf_match:
+      description: Channel with reference VCF file for matching
+      structure:
+        - meta2:
+            type: map
+            description: Metadata map for reference VCF
+        - vcf_b:
+            type: file
+            description: Reference VCF file
+            pattern: "*.{vcf,vcf.gz}"
+  - ch_genes_gff:
+      description: Channel with gene annotation file
+      structure:
+        - meta3:
+            type: map
+            description: Metadata map for GFF file
+        - gff:
+            type: file
+            description: GFF file with gene annotations
+            pattern: "*.{gff,gff3,gff.gz}"
+
+output:
+  - filtered_vcf:
+      description: Channel containing filtered VCF files
+      structure:
+        - meta:
+            type: map
+            description: Metadata map
+        - vcf:
+            type: file
+            description: Filtered VCF file
+            pattern: "*.filtered.vcf"
+  - matched_vcf:
+      description: Channel containing matched VCF files
+      structure:
+        - meta:
+            type: map
+            description: Metadata map
+        - vcf:
+            type: file
+            description: Matched VCF file
+            pattern: "*.matched.vcf"
+  - consequence_vcf:
+      description: Channel containing consequence-annotated VCF files
+      structure:
+        - meta:
+            type: map
+            description: Metadata map
+        - vcf:
+            type: file
+            description: VCF file with consequence annotations
+            pattern: "*.consequence.vcf"
+  - tagged_vcf:
+      description: Channel containing zygosity-tagged VCF files
+      structure:
+        - meta:
+            type: map
+            description: Metadata map
+        - vcf:
+            type: file
+            description: VCF file with zygosity tags
+            pattern: "*.tagged.vcf"
+  - vcf_gz:
+      description: Channel containing compressed and indexed VCF files
+      structure:
+        - meta:
+            type: map
+            description: Metadata map
+        - vcf_gz:
+            type: file
+            description: Compressed VCF file
+            pattern: "*.vcf.gz"
+        - tbi:
+            type: file
+            description: Tabix index file
+            pattern: "*.vcf.gz.tbi"
+  - versions:
+      description: Channel containing software versions file
+      structure:
+        - versions:
+            type: file
+            description: File containing versions of the software used
+            pattern: "versions.yml"
+
+authors:
+  - "@haidyi"
+maintainers:
+  - "@haidyi"
