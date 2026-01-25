@@ -16,15 +16,16 @@ You will need to create a samplesheet with information about the samples you wou
 --input '[path to samplesheet file]'
 ```
 
-| Column       | Description                                             |
-| ----------   | ------------------------------------------------------- |
-| `patient`    | patient name with id                                    |
-| `sample`     | sample name associated with this patient                |
-| `status`     | status indicate sample is tumor or normal               |
-| `bam`        | Path to the unaligned bam file                          |
-| `pbi`        | Path to the associated pbi - bam index file. (optional) |
+| Column    | Description                                             |
+| --------- | ------------------------------------------------------- |
+| `patient` | patient name with id                                    |
+| `sample`  | sample name associated with this patient                |
+| `status`  | status indicate sample is tumor or normal               |
+| `bam`     | Path to the unaligned bam file                          |
+| `pbi`     | Path to the associated pbi - bam index file. (optional) |
 
 ### Example samplesheet
+
 ```csv title="samplesheet.csv"
 patient,sample,status,bam
 Patient1,Sample1_Tumor,1,P1_s1_tumor.bam

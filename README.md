@@ -39,12 +39,14 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow mana
 The pipeline performs the following steps:
 
 ### 1. Alignment and Quality Control
+
 - Read alignment to reference genome ([pbmm2](https://github.com/PacificBiosciences/pbmm2))
 - Alignment sorting and indexing ([SAMtools](https://www.htslib.org/doc/samtools.html))
 - Coverage analysis ([bamCoverage](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html), [mosdepth](https://github.com/brentp/mosdepth))
 - Aggregated quality reporting ([MultiQC](http://multiqc.info/))
 
 ### 2. Variant Calling
+
 - **Germline SNVs**: [Clair3](https://github.com/HKU-BAL/Clair3)
 - **Variant phasing**: [HiPhase](https://github.com/PacificBiosciences/HiPhase)
 - **Somatic SNVs/indels**: [DeepSomatic](https://github.com/google/deepsomatic)
@@ -52,17 +54,20 @@ The pipeline performs the following steps:
 - **Somatic copy number variants**: [CNVkit](https://github.com/etal/cnvkit)
 
 ### 3. Variant Annotation and Filtering
+
 - SNV/indel functional annotation ([VEP](https://github.com/Ensembl/ensembl-vep))
 - Mutation signature analysis ([MutationalPatterns](https://github.com/UMCUGenetics/MutationalPatterns))
 - SV filtering ([svpack](https://github.com/PacificBiosciences/svpack))
 - SV annotation ([AnnotSV](https://github.com/lgmgeo/AnnotSV))
 
 ### 4. Methylation Analysis
+
 - CpG methylation calling ([pb-CpG-tools](https://github.com/PacificBiosciences/pb-CpG-tools))
 - Differential methylation region detection ([DSS](https://forge.irstea.fr/chloe.cerutti/bsseqmethdiffanalysis/-/blob/main/DSS/DMR.R))
 - DMR annotation ([annotatr](https://bioconductor.org/packages/release/bioc/html/annotatr.html))
 
 ### 5. Tumor Characterization
+
 - Homologous recombination deficiency estimation ([CHORD](https://github.com/UMCUGenetics/CHORD))
 - Tumor purity and ploidy analysis ([AMBER](https://github.com/hartwigmedical/hmftools/tree/master/amber), [COBALT](https://github.com/hartwigmedical/hmftools/tree/master/cobalt), [PURPLE](https://github.com/hartwigmedical/hmftools/tree/master/purple))
 
@@ -92,6 +97,7 @@ ID1,S1_normal,0,/path/to/ID1_S1_normal.bam,/path/to/ID1_S1_normal.bam.pbi
 ```
 
 **Column descriptions**:
+
 - `patient`: Unique patient identifier (samples with the same ID are treated as matched pairs)
 - `sample`: Unique sample identifier
 - `status`: Sample type (`1` = tumor, `0` = normal)

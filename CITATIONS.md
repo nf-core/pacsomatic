@@ -100,7 +100,6 @@
 
   > Hartwig Medical Foundation. PURPLE - a purity ploidy estimator primarily designed for whole genome sequenced (WGS) data [Software].
 
-
 ### Mutational Signature Analysis
 
 - [MutationalPatterns](https://pubmed.ncbi.nlm.nih.gov/29695279/)
