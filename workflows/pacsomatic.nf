@@ -68,7 +68,7 @@ workflow PACSOMATIC {
         : Channel.value([[:], []])
 
     ch_annotsv_cache = params.annotsv_cache
-        ? channel.value([[:], file(params.annotsv_cache, checkIfExists: true)])
+        ? Channel.value([[:], file(params.annotsv_cache, checkIfExists: true)])
         : Channel.empty()
 
     // CNV channels

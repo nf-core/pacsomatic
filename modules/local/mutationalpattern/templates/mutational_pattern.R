@@ -3,13 +3,13 @@
 library(BiocManager)
 ref_genome <- "${ref_genome}"
 if (!require(ref_genome, quietly = TRUE)) {
-  local_lib <- file.path(getwd(), ".library")
-  if (!dir.exists(local_lib)) {
-    dir.create(local_lib, recursive = TRUE)
-  }
-  .libPaths(c(local_lib, .libPaths()))
+    local_lib <- file.path(getwd(), ".library")
+    if (!dir.exists(local_lib)) {
+        dir.create(local_lib, recursive = TRUE)
+    }
+    .libPaths(c(local_lib, .libPaths()))
 
-  BiocManager::install(ref_genome, update = FALSE, ask = FALSE)
+    BiocManager::install(ref_genome, update = FALSE, ask = FALSE)
 }
 
 library(MutationalPatterns)
