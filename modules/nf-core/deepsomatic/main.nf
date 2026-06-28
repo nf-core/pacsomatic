@@ -32,7 +32,7 @@ process DEEPSOMATIC {
     def sample_normal="${meta.patient}_${meta.normal_id}" 
     def sample_tumor="${meta.patient}_${meta.tumor_id}"
     """
-    run_deepsomatic \\
+        /opt/deepvariant/bin/deepsomatic/run_deepsomatic \\
         --ref=${fasta} \\
         --reads_normal=${input_normal} \\
         --reads_tumor=${input_tumor} \\

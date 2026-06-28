@@ -17,7 +17,7 @@ workflow UTILS_NFCORE_PIPELINE {
     checkProfileProvided(nextflow_cli_args)
 
     emit:
-    valid_config
+    valid_config = valid_config
 }
 
 /*
@@ -79,8 +79,18 @@ def getWorkflowVersion() {
 //
 def processVersionsFromYAML(yaml_file) {
     def yaml = new org.yaml.snakeyaml.Yaml()
-    def versions = yaml.load(yaml_file).collectEntries { k, v -> [k.tokenize(':')[-1], v] }
-    return yaml.dumpAsMap(versions).trim()
+    if (yaml_file instanceof Path) {
+        def versions = yaml.load(yaml_file).collectEntries { k, v -> [k.tokenize(':')[-1], v] }
+        return yaml.dumpAsMap(versions).trim()
+    } else {
+        // Handle topic tuple: [process, tool, version]
+        def module = yaml_file[0].tokenize(':')[-1]
+        def versions = [(module): [(yaml_file[1]): yaml_file[2]]]
+        return yaml.dumpAsMap(versions).trim()
+    }
+
+    // def versions = yaml.load(yaml_file).collectEntries { k, v -> [k.tokenize(':')[-1], v] }
+    // return yaml.dumpAsMap(versions).trim()
 }
 
 //
@@ -98,7 +108,7 @@ def workflowVersionToYAML() {
 // Get channel of software versions used in pipeline in YAML format
 //
 def softwareVersionsToYAML(ch_versions) {
-    return ch_versions.unique().map { version -> processVersionsFromYAML(version) }.unique().mix(Channel.of(workflowVersionToYAML()))
+    return ch_versions.unique().map { version -> processVersionsFromYAML(version) }.unique().mix(channel.of(workflowVersionToYAML()))
 }
 
 //

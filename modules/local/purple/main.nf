@@ -74,12 +74,12 @@ process PURPLE {
     #    echo "ERROR: PURPLE output file not created or empty" >&2
     #    exit 1
     # fi
-   
+
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        purple: \$(purple -version 2>&1 | sed 's/.*Purple version: //')
-        bcftools: \$(bcftools --version 2>&1 | head -n1 | sed 's/^.*bcftools //; s/ .*\$//')
+        purple: 4.0.2
+        bcftools: 1.19
     END_VERSIONS
     """
 

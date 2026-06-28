@@ -10,7 +10,10 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": ["input", "outdir"],
+            "required": [
+                "input",
+                "outdir"
+            ],
             "properties": {
                 "input": {
                     "type": "string",
@@ -82,6 +85,245 @@
                 }
             }
         },
+        "snv_call_options": {
+            "title": "Variant Calling options",
+            "type": "object",
+            "description": "Options for variant calling specifications",
+            "help_text": "These options are specific to pacsomatic and allow customization of the variant calling steps",
+            "properties": {
+                "clair3_model": {
+                    "type": "string",
+                    "description": "Name of a prepackaged Clair3 model.",
+                    "help_text": "Full list of prepackaged Clair3 models and their descriptions is provided at https://github.com/HKU-BAL/Clair3?tab=readme-ov-file#pre-trained-models.",
+                    "fa_icon": "fas fa-forward"
+                },
+                "clair3_model_path": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Directory containing Clair3 model files.",
+                    "fa_icon": "fas fa-users-cog"
+                },
+                "pbcpgtools_minmapq": {
+                    "type": "number",
+                    "default": 1,
+                    "fa_icon": "fas fa-wrench",
+                    "description": "minmapq value for pbcpgtools",
+                    "help_text": "Details, see [pb-cp-gtools manual](https://github.com/PacificBiosciences/pb-CpG-tools)."
+                },
+                "pbcpgtools_mincov": {
+                    "type": "number",
+                    "default": 4,
+                    "fa_icon": "fas fa-wrench",
+                    "description": "min-coverage value for pbcpgtools",
+                    "help_text": "Details, see [pb-cp-gtools manual](https://github.com/PacificBiosciences/pb-CpG-tools)."
+                },
+                "vep_assembly": {
+                    "type": "string",
+                    "description": "assembly name for vep annotation, e.g GRCh38.",
+                    "fa_icon": "fas fa-users-cog"
+                },
+                "vep_species": {
+                    "type": "string",
+                    "description": "species name for vep annotation, e.g homo_sapiens,or mouse.",
+                    "fa_icon": "fas fa-users-cog"
+                },
+                "vep_cache_version": {
+                    "type": "integer",
+                    "default": 115,
+                    "description": "Specify the version of the VEP cache provided to the `--vep_cache` option.",
+                    "fa_icon": "fas fa-align-center"
+                },
+                "vep_cache": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Directory for Ensembl VEP Cache.",
+                    "fa_icon": "fas fa-users-cog"
+                },
+                "mutationalpattern_max_delta": {
+                    "type": "number",
+                    "default": 0.06,
+                    "fa_icon": "fas fa-wrench",
+                    "description": "mutationalpattern max_delta",
+                    "help_text": "Details, see [Mutational pattern manual](https://bioconductor.org/packages/release/bioc/html/MutationalPatterns.html)."
+                }
+            }
+        },
+        "sv_call_options": {
+            "title": "Structural variant calling and annotation options",
+            "type": "object",
+            "description": "Parameters for structural variant (SV) calling, filtering, and annotation",
+            "default": "",
+            "properties": {
+                "severus_trf_bed": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.bed$",
+                    "description": "Tandem repeat regions BED file for SEVERUS",
+                    "help_text": "Path to a BED file containing tandem repeat annotations. SEVERUS uses this file to identify and handle structural variants that overlap with tandem repeat regions, which are known to be challenging for SV detection.",
+                    "fa_icon": "fas fa-file-alt"
+                },
+                "svpack_ctrl_vcf": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.vcf(\\.gz)?$",
+                    "description": "Control VCF file for SVPACK filtering",
+                    "help_text": "Path to a VCF file containing structural variants from control samples. SVPACK uses this file to filter out common or artifact SVs that appear in normal samples, improving the specificity of somatic SV calls.",
+                    "fa_icon": "fas fa-filter"
+                },
+                "svpack_ref_gff": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.gff3?(\\.gz)?$",
+                    "description": "Reference GFF file for SVPACK annotation",
+                    "help_text": "Path to a GFF/GFF3 file containing gene annotations. SVPACK uses this file to annotate structural variants with overlapping genes, transcripts, and other genomic features.",
+                    "fa_icon": "fas fa-dna"
+                },
+                "annotsv_cache": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "AnnotSV cache directory",
+                    "help_text": "Path to the AnnotSV annotation database directory. This directory contains pre-downloaded annotation resources (e.g., gene annotations, regulatory elements, pathogenicity scores) used by AnnotSV for comprehensive structural variant annotation. Can be downloaded using 'AnnotSV -installFolder'.",
+                    "fa_icon": "fas fa-database"
+                }
+            },
+            "fa_icon": "fas fa-project-diagram"
+        },
+        "cnv_call_options": {
+            "title": "CNV calling options",
+            "type": "object",
+            "description": "Options for copy number variation (CNV) calling and analysis",
+            "help_text": "These options are specific to pacsomatic and allow customization of the variant calling steps",
+            "properties": {
+                "cnv_target_bed": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "BED file defining target regions for CNVkit analysis",
+                    "help_text": "Path to a BED file containing the genomic coordinates of target regions (e.g., exons or bait regions) for CNVkit CNV calling. This file is used to focus the analysis on specific genomic regions of interest.",
+                    "fa_icon": "fas fa-file-alt"
+                },
+                "cnv_reference": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "CNVkit reference file for copy number calling",
+                    "help_text": "Path to a pre-built CNVkit reference file (.cnn). This reference is created from a pooled set of normal samples and is used to normalize coverage and call copy number variants. If not provided, a flat reference may be constructed from the target and antitarget regions.",
+                    "fa_icon": "fas fa-database"
+                },
+                "cnv_germline_vcf": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Germline VCF file for CNV refinement",
+                    "help_text": "Path to a VCF file containing germline variant calls. This file is used to refine CNV calls by incorporating B-allele frequency (BAF) information from heterozygous SNPs, improving the accuracy of copy number segmentation and allele-specific copy number estimation.",
+                    "fa_icon": "fas fa-dna"
+                },
+                "cnv_target_size": {
+                    "type": "integer",
+                    "description": "Average target region size for CNVkit",
+                    "help_text": "Average size (in base pairs) of target regions for CNVkit analysis. This parameter is used when creating antitarget regions and affects the binning strategy. Typical values range from 200-500 bp for exome sequencing. If not specified, CNVkit will calculate this automatically from the target BED file.",
+                    "minimum": 50,
+                    "fa_icon": "fas fa-ruler"
+                },
+                "cnv_min_var_depth": {
+                    "type": "integer",
+                    "description": "Minimum variant depth for CNVkit analysis",
+                    "help_text": "Minimum read depth required at variant positions for CNVkit to use them in copy number analysis. Higher values increase confidence but may reduce the number of informative sites. Recommended values are typically 20-50 for high-coverage data.",
+                    "minimum": 1,
+                    "default": 20,
+                    "fa_icon": "fas fa-layer-group"
+                }
+            },
+            "fa_icon": "fas fa-chart-line"
+        },
+        "tumor_clonality_options": {
+            "title": "Tumor clonality analysis options",
+            "type": "object",
+            "description": "Parameters for tumor clonality analysis using Hartwig Medical Foundation tools (AMBER, COBALT, PURPLE)",
+            "default": "",
+            "properties": {
+                "heterozygous_sites": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.vcf(\\.gz)?$",
+                    "description": "GermlineHetPon VCF file for AMBER",
+                    "help_text": "Path to a VCF file containing common heterozygous germline SNP sites (GermlineHetPon). AMBER uses these sites to determine B-allele frequency (BAF) across the genome, which is essential for identifying copy-neutral loss of heterozygosity and allele-specific copy number changes. This file can be obtained from the Hartwig Medical Foundation resources.",
+                    "fa_icon": "fas fa-dna"
+                },
+                "gc_profile": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.(cnp|txt)$",
+                    "description": "GC content profile for COBALT",
+                    "help_text": "Path to a GC profile file for COBALT read-depth ratio normalization. This file contains GC content for genomic windows and is used to correct for GC-bias in sequencing coverage. Pre-built profiles for common reference genomes are available from the Hartwig Medical Foundation resources.",
+                    "fa_icon": "fas fa-chart-area"
+                },
+                "driver_gene_panel": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.(tsv|txt|bed)$",
+                    "description": "Driver gene panel for PURPLE",
+                    "help_text": "Path to a file containing a curated list of cancer driver genes. PURPLE uses this panel to prioritize somatic variants in known cancer genes and to assess their impact on tumor biology. The file should contain gene names and may include additional information about driver mechanisms.",
+                    "fa_icon": "fas fa-list-ul"
+                },
+                "known_hotspots_somatic": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.vcf(\\.gz)?$",
+                    "description": "Known somatic hotspot variants for PURPLE",
+                    "help_text": "Path to a VCF file containing known recurrent somatic mutations (hotspots) in cancer. PURPLE uses this file to identify clinically relevant mutations and to apply hotspot-specific filtering criteria. Hotspot databases such as COSMIC can be used to create this file.",
+                    "fa_icon": "fas fa-fire"
+                },
+                "known_hotspots_germline": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.vcf(\\.gz)?$",
+                    "description": "Known germline hotspot variants for PURPLE",
+                    "help_text": "Path to a VCF file containing known pathogenic germline variants associated with cancer predisposition. PURPLE uses this file to identify inherited cancer risk variants and to distinguish them from somatic mutations.",
+                    "fa_icon": "fas fa-seedling"
+                },
+                "ensembl_data_dir": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Ensembl data directory for PURPLE",
+                    "help_text": "Path to the directory containing Ensembl gene annotation data. PURPLE uses this data for comprehensive variant annotation, including transcript consequences, protein domains, and functional predictions. The directory should contain gene models, transcript sequences, and protein features from Ensembl.",
+                    "fa_icon": "fas fa-folder-open"
+                },
+                "target_regions_bed": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.bed$",
+                    "description": "Target regions BED file for targeted sequencing",
+                    "help_text": "Optional: Path to a BED file defining target regions for targeted/exome sequencing experiments. PURPLE uses this to focus analysis on captured regions and apply appropriate coverage and quality filters. Not required for whole genome sequencing.",
+                    "fa_icon": "fas fa-bullseye"
+                },
+                "diploid_regions": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.bed$",
+                    "description": "Diploid regions BED file for copy number baseline",
+                    "help_text": "Optional: Path to a BED file containing genomic regions expected to be diploid (copy number = 2). PURPLE uses these regions to establish a copy number baseline and improve ploidy estimation. Useful for samples with high tumor purity or extensive copy number changes.",
+                    "fa_icon": "fas fa-equals"
+                },
+                "target_region_normalisation": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.(tsv|txt)$",
+                    "description": "Target region normalisation file for COBALT",
+                    "help_text": "Optional: Path to a file containing target region-specific normalisation ratios for COBALT. This file is used to correct for systematic biases in coverage across different target regions in panel or exome sequencing. Pre-computed normalisation files can be generated from a panel of normals.",
+                    "fa_icon": "fas fa-balance-scale"
+                }
+            },
+            "fa_icon": "fas fa-microscope"
+        },
         "process_skipping_options": {
             "title": "Process skipping options",
             "type": "object",
@@ -114,7 +356,7 @@
                     "description": "Option to skip ensemblvep for somatic SNV annotation",
                     "fa_icon": "fas fa-forward"
                 },
-               "skip_vep_download": {
+                "skip_vep_download": {
                     "type": "boolean",
                     "description": "Option to skip ensemblvep_down to acquire a cloud hosted vep_cache",
                     "fa_icon": "fas fa-forward"
@@ -134,12 +376,12 @@
                     "description": "Option to skip pb_cpg_tools",
                     "fa_icon": "fas fa-forward"
                 },
-               "skip_dmr": {
+                "skip_dmr": {
                     "type": "boolean",
                     "description": "Option to skip dmr for differential methyaltion region detection",
                     "fa_icon": "fas fa-forward"
                 },
-               "skip_dmr_anno": {
+                "skip_dmr_anno": {
                     "type": "boolean",
                     "description": "Option to skip dmr annotation",
                     "fa_icon": "fas fa-forward"
@@ -159,111 +401,62 @@
                     "description": "Option to skip tumor_clonality",
                     "fa_icon": "fas fa-forward"
                 },
-                "skip_severus": {
+                "skip_sv": {
                     "type": "boolean",
-                    "description": "Option to skip severus_SV caller",
+                    "description": "Option to skip SV caller",
                     "fa_icon": "fas fa-forward"
-               },
-               "skip_svpack": {
+                },
+                "skip_svpack": {
                     "type": "boolean",
                     "description": "Option to skip SVPack for SV filtering ",
                     "fa_icon": "fas fa-forward"
-               },
-               "skip_annotsv": {
+                },
+                "skip_annotsv": {
                     "type": "boolean",
                     "description": "Option to skip annotsv",
                     "fa_icon": "fas fa-forward"
-               },
-               "skip_annotsv_install": {
+                },
+                "skip_annotsv_install": {
                     "type": "boolean",
                     "description": "Option to skip annotsv_install to acquire a cloud annotsv_cache",
                     "fa_icon": "fas fa-forward"
-               },
-               "skip_cnvkit": {
+                },
+                "skip_cnvkit": {
                     "type": "boolean",
                     "description": "Option to skip CNVKit caller",
                     "fa_icon": "fas fa-forward"
-               },
-               "skip_chord": {
+                },
+                "skip_chord": {
                     "type": "boolean",
                     "description": "Option to skip HRD(Homologous Recombination Deficiency) estimation from the called SNV and SV variants",
                     "fa_icon": "fas fa-forward"
-               },
-               "skip_multiqc": {
+                },
+                "skip_multiqc": {
                     "type": "boolean",
                     "fa_icon": "fas fa-forward",
                     "description": "Skip MultiQC."
-              }
+                }
             },
             "fa_icon": "fas fa-forward"
         },
-        "variant_calling_annotation_options": {
-            "title": "Variant Calling options",
+        "general_workflow_options": {
+            "title": "General workflow options",
             "type": "object",
-            "description": "Options for variant calling specifications",
-            "help_text": "These options are specific to pacsomatic and allow customization of the variant calling steps",
+            "description": "Options for specifying workflow type",
+            "help_text": "These options are important for the specifying which workflow runs",
             "properties": {
-                "clair3_model": {
+                "workflow": {
                     "type": "string",
-                    "description": "Name of a prepackaged Clair3 model.",
-                    "help_text": "Full list of prepackaged Clair3 models and their descriptions is provided at https://github.com/HKU-BAL/Clair3?tab=readme-ov-file#pre-trained-models.",
-                    "fa_icon": "fas fa-forward"
-                },
-                "clair3_model_path": {
-                    "type": "string",
-                    "format": "directory-path",
-                    "description": "Directory containing Clair3 model files.",
-                    "fa_icon": "fas fa-users-cog"
-                },
-                 "pbcpgtools_minmapq": {
-                    "type": "number",
-                    "default": 1,
-                    "fa_icon": "fas fa-wrench",
-                    "description": "minmapq value for pbcpgtools",
-                    "help_text": "Details, see [pb-cp-gtools manual](https://github.com/PacificBiosciences/pb-CpG-tools).",
-                },  
-                "pbcpgtools_mincov": {
-                    "type": "number",
-                    "default": 4,
-                    "fa_icon": "fas fa-wrench",
-                    "description": "min-coverage value for pbcpgtools",
-                    "help_text": "Details, see [pb-cp-gtools manual](https://github.com/PacificBiosciences/pb-CpG-tools).",
-                }, 
-                "vep_assembly": {
-                    "type": "string",
-                    "description": "assembly name for vep annotation, e.g GRCh38.",
-                    "fa_icon": "fas fa-users-cog"
-                }, 
-                "vep_species": {
-                    "type": "string",
-                    "description": "species name for vep annotation, e.g homo_sapiens,or mouse.",
-                    "fa_icon": "fas fa-users-cog"
-                },
-                "vep_cache_version": {
-                    "type": "string",
-                    "description": " The Ensembl VEP version",
-                    "fa_icon": "fas fa-users-cog"
-                },                
-                "vep_cache": {
-                    "type": "string",
-                    "format": "directory-path",
-                    "description": "Directory for Ensembl VEP Cache.",
-                    "fa_icon": "fas fa-users-cog"
-                },                
-                "mutationalpattern_max_delta": {
-                    "type": "number",
-                    "default": 0.04,
-                    "fa_icon": "fas fa-wrench",
-                    "description": "mutationalpattern max_delta",
-                    "help_text": "Details, see [Mutational pattern manual](https://bioconductor.org/packages/release/bioc/html/MutationalPatterns.html).",
-                },
-                "annotsv_cache": {
-                    "type": "string",
-                    "format": "directory-path",
-                    "description": "Directory for AnnotSV Cache.",
-                    "fa_icon": "fas fa-users-cog"
+                    "default": "wgs",
+                    "description": "Workflow type - can either be wes or wgs",
+                    "enum": [
+                        "wgs",
+                        "wes"
+                    ],
+                    "fa_icon": "fas fa-map-signs"
                 }
-            }
+            },
+            "fa_icon": "fas fa-map-signs"
         },
         "institutional_config_options": {
             "title": "Institutional config options",
@@ -313,24 +506,6 @@
                 }
             }
         },
-        "bam_qc": {
-           "title": "Alignment BAM QC evaluation",
-            "type": "object",
-            "description": "Options for alignment qc",
-            "help_text": "These options allow customization of alignment BAM qc evaluation",
-            "properties": {
-                "skip_mosdepth": {
-                    "type": "boolean",
-                    "description": "Option to skip mosdepth for alignment QC",
-                    "fa_icon": "fas fa-forward"
-                },
-                "skip_bamcoverage": {
-                    "type": "boolean",
-                    "description": "Option to skip bamcoverage for alignment QC",
-                    "fa_icon": "fas fa-forward"
-                },
-            }
-        },
         "generic_options": {
             "title": "Generic options",
             "type": "object",
@@ -350,7 +525,14 @@
                     "description": "Method used to save pipeline results to output directory.",
                     "help_text": "The Nextflow `publishDir` option specifies which intermediate files should be saved to the output directory. This option tells the pipeline what method should be used to move these files. See [Nextflow docs](https://www.nextflow.io/docs/latest/process.html#publishdir) for details.",
                     "fa_icon": "fas fa-copy",
-                    "enum": ["symlink", "rellink", "link", "copy", "copyNoFollow", "move"],
+                    "enum": [
+                        "symlink",
+                        "rellink",
+                        "link",
+                        "copy",
+                        "copyNoFollow",
+                        "move"
+                    ],
                     "hidden": true
                 },
                 "email_on_fail": {
@@ -437,13 +619,25 @@
             "$ref": "#/$defs/reference_genome_options"
         },
         {
+            "$ref": "#/$defs/snv_call_options"
+        },
+        {
+            "$ref": "#/$defs/sv_call_options"
+        },
+        {
+            "$ref": "#/$defs/cnv_call_options"
+        },
+        {
+            "$ref": "#/$defs/tumor_clonality_options"
+        },
+        {
             "$ref": "#/$defs/process_skipping_options"
         },
         {
-            "$ref": "#/$defs/institutional_config_options"
+            "$ref": "#/$defs/general_workflow_options"
         },
         {
-            "$ref": "#/$defs/variant_calling_annotation_options"
+            "$ref": "#/$defs/institutional_config_options"
         },
         {
             "$ref": "#/$defs/generic_options"

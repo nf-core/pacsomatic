@@ -55,7 +55,7 @@ workflow PIPELINE_INITIALISATION {
         validate_params,
         null
     )
-   
+    
 
     //
     // Check config provided to the pipeline
@@ -74,8 +74,16 @@ workflow PIPELINE_INITIALISATION {
     //
 
     Channel
-        .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
+         .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
+         .set { ch_samplesheet }
+   
+   /*
+    Channel
+        .fromPath(params.input)
+        .splitText()
+        .splitCsv(sep: ',')
         .set { ch_samplesheet }
+    */    
 
     emit:
     samplesheet = ch_samplesheet
