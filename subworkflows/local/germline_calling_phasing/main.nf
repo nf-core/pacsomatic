@@ -3,6 +3,7 @@
 //
 
 include { CLAIR3  } from '../../../modules/nf-core/clair3/main'
+include { DEEPVARIANT_RUNDEEPVARIANT } from '../../../modules/nf-core/deepvariant/rundeepvariant/main'
 include { HIPHASE } from '../../../modules/nf-core/hiphase/main'
 
 workflow GERMLINE_CALLING_PHASING {
@@ -16,36 +17,58 @@ workflow GERMLINE_CALLING_PHASING {
     main:
     ch_versions = Channel.empty()
 
-    //
-    // Validate CLAIR3 model configuration
-    //
-    if (params.clair3_model && params.clair3_model_path) {
-        log.error "Two models specified ${params.clair3_model} and ${params.clair3_model_path}, specify one of them."
-        exit 1
-    }
-    if (!params.clair3_model && !params.clair3_model_path) {
-        log.error "No clair3 model is specified, use option params.clair3_model or params.clair3_model_path."
-        exit 1
-    }
+    if ( params.skip_deepvariant ) {
+        //
+        // Validate CLAIR3 model configuration
+        //
+        if (params.clair3_model && params.clair3_model_path) {
+            log.error "Two models specified ${params.clair3_model} and ${params.clair3_model_path}, specify one of them."
+            exit 1
+        }
+        if (!params.clair3_model && !params.clair3_model_path) {
+            log.error "No clair3 model is specified, use option params.clair3_model or params.clair3_model_path."
+            exit 1
+        }
 
-    //
-    // CLAIR3: Germline variant calling
-    //
-    ch_clair3_input = ch_bam_bai.map { meta, bam, bai ->
-        def clair3_model_path = params.clair3_model_path ?
+        //
+        // CLAIR3: Germline variant calling
+        //
+        ch_clair3_input = ch_bam_bai.map { meta, bam, bai ->
+            def clair3_model_path = params.clair3_model_path ?
             file(params.clair3_model_path, checkIfExists:true, dir:true) : []
-        [ meta, bam, bai, params.clair3_model, clair3_model_path, 'hifi' ]
+            [ meta, bam, bai, params.clair3_model, clair3_model_path, 'hifi' ]
+        }
+
+        CLAIR3 (
+            ch_clair3_input,
+            ch_genome_fasta,
+            ch_genome_fai
+        )
+        ch_versions = ch_versions.mix(CLAIR3.out.versions.first())
+
+        // Join VCF and TBI
+        ch_vcf_tbi = CLAIR3.out.vcf.join(CLAIR3.out.tbi)
     }
 
-    CLAIR3 (
-        ch_clair3_input,
-        ch_genome_fasta,
-        ch_genome_fai
-    )
-    ch_versions = ch_versions.mix(CLAIR3.out.versions.first())
+    if ( !params.skip_deepvariant ) {
+        //
+	// Germline variant calling with DEEPVARIANT
+        //
+	ch_deepvariant_input = ch_bam_bai.map { meta, bam, bai ->
+           [ meta, bam, bai, []]
+        }
+	DEEPVARIANT_RUNDEEPVARIANT  (
+            ch_deepvariant_input,
+            ch_genome_fasta,
+            ch_genome_fai,
+            [[:],[]],
+            [[:],[]]
+        )
 
-    // Join VCF and TBI
-    ch_vcf_tbi = CLAIR3.out.vcf.join(CLAIR3.out.tbi)
+	ch_versions = ch_versions.mix(DEEPVARIANT_RUNDEEPVARIANT.out.versions_deepvariant.first())
+        ch_vcf_tbi=DEEPVARIANT_RUNDEEPVARIANT.out.vcf.join(DEEPVARIANT_RUNDEEPVARIANT.out.vcf_index)
+
+    }   
 
     //
     // HIPHASE: Germline phasing (optional, only for normal samples)
